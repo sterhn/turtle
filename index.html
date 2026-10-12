@@ -1581,12 +1581,9 @@ function setRunning(on) {
   skipBtn.disabled = !on; stopBtn.disabled = !on;
 }
 
-let saveTimer = 0;
 function onInput() {
   if (errLine) errLine = null;
   renderEditor();
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { try { localStorage.setItem('turtle-code', ta.value); } catch (e) { /* storage unavailable */ } }, 400);
 }
 ta.addEventListener('input', onInput);
 ta.addEventListener('scroll', syncScroll);
@@ -1894,13 +1891,11 @@ sel.addEventListener('change', () => {
 });
 
 /* start */
-let saved = null;
-try { saved = localStorage.getItem('turtle-code'); } catch (e) { saved = null; }
-ta.value = saved && saved.trim() ? saved : EXAMPLES['Домик'];
+ta.value = EXAMPLES['Чистый лист'];
+ta.setSelectionRange(ta.value.length, ta.value.length);
 renderEditor();
 sizeCanvases();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { drawBg(); renderEditor(); });
-run();
 </script>
 </body>
 </html>
