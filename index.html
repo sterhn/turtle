@@ -1,0 +1,1832 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Черепашка Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: a workbench — code on the left, a sheet of graph paper on the right, the cheat sheet underneath */
+:root {
+  --bg: #eef1f6;
+  --surface: #ffffff;
+  --gutter: #f6f8fb;
+  --ink: #1a2030;
+  --muted: #5a6377;
+  --line: #d6dce7;
+  --accent: #2d5bd0;
+  --go: #17845a;
+  --go-hover: #126d4a;
+  --go-ink: #ffffff;
+  --err: #b93b26;
+  --err-bg: #fbeae6;
+  --ok: #17845a;
+  --cur-bg: rgba(45, 91, 208, 0.12);
+  --err-line-bg: rgba(185, 59, 38, 0.14);
+  --sel: rgba(45, 91, 208, 0.25);
+  --syn-kw: #8a3fc2;
+  --syn-str: #1d7d4a;
+  --syn-num: #b55a00;
+  --syn-com: #7b8396;
+  --syn-fn: #2d5bd0;
+  --syn-b: #9a3f6c;
+  /* the drawing sheet stays paper-white in both themes so "black" ink is always visible */
+  --paper: #ffffff;
+  --paper-grid: #e9edf4;
+  --paper-axis: #c5cddb;
+  --paper-label: #9aa3b4;
+  --font-ui: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-code: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121620; --surface: #1a1f2b; --gutter: #161b26; --ink: #e6e9f0; --muted: #9aa3b5; --line: #2c3343;
+    --accent: #85a6ff; --go: #2fa874; --go-hover: #39bd84; --go-ink: #07160f; --err: #ff8a73; --err-bg: #3a1f1a; --ok: #4cc78f;
+    --cur-bg: rgba(133, 166, 255, 0.16); --err-line-bg: rgba(255, 138, 115, 0.18); --sel: rgba(133, 166, 255, 0.32);
+    --syn-kw: #c79bff; --syn-str: #7fd3a0; --syn-num: #ffb46b; --syn-com: #7d879b; --syn-fn: #85a6ff; --syn-b: #f09ac4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121620; --surface: #1a1f2b; --gutter: #161b26; --ink: #e6e9f0; --muted: #9aa3b5; --line: #2c3343;
+  --accent: #85a6ff; --go: #2fa874; --go-hover: #39bd84; --go-ink: #07160f; --err: #ff8a73; --err-bg: #3a1f1a; --ok: #4cc78f;
+  --cur-bg: rgba(133, 166, 255, 0.16); --err-line-bg: rgba(255, 138, 115, 0.18); --sel: rgba(133, 166, 255, 0.32);
+  --syn-kw: #c79bff; --syn-str: #7fd3a0; --syn-num: #ffb46b; --syn-com: #7d879b; --syn-fn: #85a6ff; --syn-b: #f09ac4;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-ui); }
+.wrap { max-width: 1320px; margin: 0 auto; padding-inline: 24px; padding-block: 20px 56px; display: grid; gap: 22px; }
+@media (max-width: 560px) { .wrap { padding-inline: 16px; padding-block: 14px 40px; gap: 16px; } }
+
+/* header */
+.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 28px; }
+.importline { margin: 0; font: 700 clamp(24px, 4.2vw, 38px)/1.1 var(--font-code); letter-spacing: -0.01em; white-space: nowrap; }
+.importline .k { color: var(--syn-kw); }
+.importline .star { color: var(--go); }
+.sub { margin: 0; color: var(--muted); max-width: 52ch; }
+
+/* workbench */
+.bench { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; align-items: start; }
+@media (max-width: 920px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+.panel { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.btn {
+  font: 600 14px/1 var(--font-ui); padding: 10px 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.go { background: var(--go); border-color: var(--go); color: var(--go-ink); padding-inline: 18px; }
+.btn.go:hover { background: var(--go-hover); border-color: var(--go-hover); }
+.btn:focus-visible, select:focus-visible, .cmd:focus-visible, .swatch:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.examples { margin-left: auto; display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; }
+.examples select { font: 500 14px var(--font-ui); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
+@media (max-width: 560px) { .examples { margin-left: 0; } }
+
+/* code editor: a transparent textarea over a highlighted copy */
+.editor {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); height: 440px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+}
+.editor:focus-within { border-color: var(--accent); }
+@media (max-width: 560px) { .editor { height: 340px; } }
+.gutter { background: var(--gutter); border-right: 1px solid var(--line); overflow: hidden; user-select: none; }
+.gutter-inner { padding: 12px 10px 60px 14px; font: 14px/24px var(--font-code); color: var(--muted); text-align: right; min-width: 3.2em; }
+.gutter-inner div { height: 24px; font-variant-numeric: tabular-nums; }
+.gutter-inner .cur { color: var(--accent); font-weight: 700; }
+.gutter-inner .err { color: var(--err); font-weight: 700; }
+.code-area { position: relative; overflow: hidden; min-width: 0; }
+.code-area textarea, .hl {
+  position: absolute; inset: 0; margin: 0; padding: 12px 14px; border: 0;
+  font: 14.5px/24px var(--font-code); letter-spacing: 0; white-space: pre; tab-size: 4; word-wrap: normal;
+}
+.code-area textarea {
+  z-index: 1; width: 100%; height: 100%; resize: none; outline: none; overflow: auto;
+  background: transparent; color: transparent; caret-color: var(--ink); -webkit-text-fill-color: transparent;
+}
+.code-area textarea::selection { background: var(--sel); }
+.hl { overflow: hidden; pointer-events: none; color: var(--ink); }
+.hl-inner { padding-bottom: 60px; }
+.hl .l { height: 24px; margin: 0 -14px; padding: 0 14px; min-width: calc(100% + 28px); width: max-content; }
+.hl .l.cur { background: var(--cur-bg); }
+.hl .l.err { background: var(--err-line-bg); }
+.hl .k { color: var(--syn-kw); }
+.hl .s { color: var(--syn-str); }
+.hl .n { color: var(--syn-num); }
+.hl .c { color: var(--syn-com); font-style: italic; }
+.hl .f { color: var(--syn-fn); }
+.hl .b { color: var(--syn-b); }
+.keys { margin: 0; font-size: 13px; color: var(--muted); }
+.keys kbd { font: 12px var(--font-code); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--surface); }
+
+/* output */
+.console {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 12px 14px; min-height: 64px; display: grid; gap: 8px; align-content: start;
+}
+.console .placeholder { color: var(--muted); font-size: 14px; }
+.console pre { margin: 0; font: 14px/1.5 var(--font-code); white-space: pre-wrap; word-break: break-word; }
+.console .ok { color: var(--ok); font-weight: 600; font-size: 14px; }
+.console .stopped { color: var(--muted); font-weight: 600; font-size: 14px; }
+.console .error {
+  background: var(--err-bg); border-radius: 8px; padding: 10px 12px; cursor: pointer;
+  display: grid; gap: 4px; font-size: 14.5px;
+}
+.console .error b { color: var(--err); }
+.console .error p { margin: 0; }
+.console .error .hint { color: var(--ink); opacity: 0.85; }
+.console .error code, .cheat code { font-family: var(--font-code); font-size: 0.95em; }
+
+/* drawing sheet */
+.stage {
+  position: relative; width: 100%; max-width: 100%; aspect-ratio: 4 / 3;
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; cursor: crosshair;
+}
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stagebar { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stagebar .grow { flex: 1 1 auto; }
+.stagebar label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; color: var(--ink); }
+
+/* cheat sheet */
+.cheat { display: grid; gap: 14px; padding-top: 6px; }
+.cheat h2 { margin: 0; font: 700 22px/1.2 var(--font-ui); text-wrap: balance; }
+.cheat h3 { margin: 0; font: 600 13px/1.2 var(--font-ui); text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.cheat .lead { margin: 0; color: var(--muted); max-width: 70ch; }
+.group { display: grid; gap: 10px; }
+.cmds { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; }
+.cmd {
+  text-align: left; font: inherit; color: inherit; cursor: pointer; display: grid; gap: 3px; align-content: start;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0;
+}
+.cmd:hover { border-color: var(--accent); }
+.cmd .code { font: 700 14.5px/1.4 var(--font-code); color: var(--syn-fn); overflow-wrap: anywhere; }
+.cmd .ru { font-weight: 600; }
+.cmd .d { color: var(--muted); font-size: 14px; line-height: 1.45; }
+.cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 22px; align-items: start; }
+@media (max-width: 920px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.swatch {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font: 14px var(--font-ui); color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px 5px 6px;
+}
+.swatch:hover { border-color: var(--accent); }
+.swatch i { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.18); flex: none; }
+.swatch code { font: 13.5px var(--font-code); }
+.swatch span { color: var(--muted); }
+.field { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 8px; }
+.field p { margin: 0; }
+.field ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 class="importline"><span class="k">from</span> turtle <span class="k">import</span> <span class="star">*</span></h1>
+    <p class="sub">Черепашка рисует по командам на Python. Напишите программу и нажмите «Запустить».</p>
+  </header>
+
+  <main class="bench">
+    <section class="panel" aria-label="Программа">
+      <div class="toolbar">
+        <button class="btn go" id="run" type="button">▶ Запустить</button>
+        <button class="btn" id="skip" type="button" disabled>Дорисовать сразу</button>
+        <button class="btn" id="stop" type="button" disabled>Стоп</button>
+        <label class="examples" for="examples">Пример:
+          <select id="examples">
+            <option value="">выбрать…</option>
+          </select>
+        </label>
+      </div>
+      <div class="editor">
+        <div class="gutter" aria-hidden="true"><div class="gutter-inner" id="gutter"></div></div>
+        <div class="code-area">
+          <div class="hl" aria-hidden="true"><div class="hl-inner" id="hl"></div></div>
+          <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Текст программы"></textarea>
+        </div>
+      </div>
+      <p class="keys"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> — запустить · <kbd>Tab</kbd> — отступ 4 пробела · <kbd>Esc</kbd>, затем <kbd>Tab</kbd> — выйти из редактора</p>
+      <div class="console" id="console" aria-live="polite">
+        <span class="placeholder">Здесь появятся сообщения, вывод print() и подсказки об ошибках.</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Поле для рисования">
+      <div class="stage" id="stage" title="Нажмите, чтобы добавить в программу goto() с координатами этой точки">
+        <canvas id="cv-bg"></canvas>
+        <canvas id="cv-draw"></canvas>
+        <canvas id="cv-top"></canvas>
+      </div>
+      <div class="stagebar">
+        <span id="tstat">Черепашка: x = 0, y = 0, смотрит на 0°</span>
+        <span id="mstat" class="grow">Наведите на поле, чтобы узнать координаты</span>
+        <label><input type="checkbox" id="grid" checked> Сетка</label>
+      </div>
+    </section>
+  </main>
+
+  <section class="cheat" aria-labelledby="cheat-title">
+    <h2 id="cheat-title">Шпаргалка</h2>
+    <p class="lead">Нажмите на команду, и она появится в программе на новой строке под курсором.</p>
+    <div class="group">
+      <h3>Главные команды</h3>
+      <div class="cmds" id="cmds-main"></div>
+    </div>
+    <div class="cols">
+      <div class="group">
+        <h3>Ещё команды</h3>
+        <div class="cmds" id="cmds-extra"></div>
+      </div>
+      <div class="group">
+        <h3>Цвета</h3>
+        <div class="swatches" id="swatches"></div>
+        <h3 style="margin-top:10px">Как устроено поле</h3>
+        <div class="field">
+          <p>Поле размером 640 × 480 шагов. Центр поля — точка <code>(0, 0)</code>. Координата x растёт вправо, y — вверх.</p>
+          <p>В начале черепашка стоит в центре и смотрит вправо.</p>
+          <ul>
+            <li>0° — вправо, 90° — вверх</li>
+            <li>180° — влево, 270° — вниз</li>
+          </ul>
+          <p>Нажмите на поле, и в программу добавится <code>goto(x, y)</code> с координатами этой точки.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   A tiny Python interpreter: just enough of the language for turtle
+   drawings (commands, variables, for / while / if, def), with error
+   messages in Russian written for school students.
+   ===================================================================== */
+
+const KW = new Set(['False','None','True','and','as','assert','async','await','break','class','continue','def','del','elif','else','except','finally','for','from','global','if','import','in','is','lambda','nonlocal','not','or','pass','raise','return','try','while','with','yield']);
+const MAX_STEPS = 3000000, MAX_OPS = 150000, MAX_DEPTH = 150, MAX_MS = 4000;
+
+class PyError extends Error {
+  constructor(line, msg, hint) { super(msg); this.line = line; this.hint = hint || null; }
+}
+
+/* ---------- lexer: source -> logical lines of tokens ---------- */
+function lex(src) {
+  const phys = src.replace(/\r\n?/g, '\n').split('\n');
+  const logical = [];
+  let cur = null;
+  const opens = []; // stack of open brackets {ch, line}
+  for (let ln = 0; ln < phys.length; ln++) {
+    const text = phys[ln].replace(/\t/g, '    ');
+    const lineNo = ln + 1;
+    let i = 0;
+    if (!cur) {
+      while (i < text.length && text[i] === ' ') i++;
+      if (i >= text.length || text[i] === '#') continue;
+      cur = { indent: i, line: lineNo, toks: [] };
+    }
+    while (i < text.length) {
+      const c = text[i];
+      if (c === ' ') { i++; continue; }
+      if (c === '#') break;
+      const rest = text.slice(i);
+      let m;
+      if ((m = /^(\d+\.?\d*(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)/.exec(rest))) {
+        cur.toks.push({ t: 'num', v: parseFloat(m[0]), line: lineNo });
+        i += m[0].length; continue;
+      }
+      if ((m = /^[A-Za-z_Ѐ-ӿ][A-Za-z_0-9Ѐ-ӿ]*/.exec(rest))) {
+        const w = m[0];
+        cur.toks.push({ t: KW.has(w) ? 'kw' : 'name', v: w, line: lineNo });
+        i += w.length; continue;
+      }
+      if (c === '"' || c === "'") {
+        let j = i + 1, s = '';
+        while (j < text.length && text[j] !== c) {
+          if (text[j] === '\\' && j + 1 < text.length) {
+            const e = text[j + 1];
+            s += e === 'n' ? '\n' : e === 't' ? '\t' : e;
+            j += 2;
+          } else s += text[j++];
+        }
+        if (j >= text.length) throw new PyError(lineNo, `Текст в кавычках не закрыт: не хватает второй кавычки ${c}`, `Текст начинается и заканчивается одинаковой кавычкой, например: color("red")`);
+        cur.toks.push({ t: 'str', v: s, line: lineNo });
+        i = j + 1; continue;
+      }
+      if ('«»“”„'.includes(c)) throw new PyError(lineNo, `Кавычка ${c} не подходит для Python`, `Используйте обычные кавычки " или ', например: color("red")`);
+      let op = null;
+      const two = text.substr(i, 2), three = text.substr(i, 3);
+      if (three === '**=' || three === '//=') op = three;
+      else if (['**', '//', '==', '!=', '<=', '>=', '+=', '-=', '*=', '/=', '%='].includes(two)) op = two;
+      else if ('+-*/%<>=()[],:.'.includes(c)) op = c;
+      if (!op) {
+        if (c === ';') throw new PyError(lineNo, 'Точка с запятой «;» здесь не нужна', 'Пишите каждую команду на отдельной строке.');
+        throw new PyError(lineNo, `Непонятный символ «${c}»`, 'Уберите этот символ или проверьте, правильно ли набрана строка.');
+      }
+      if (op === '(' || op === '[') opens.push({ ch: op, line: lineNo });
+      if (op === ')' || op === ']') {
+        const want = op === ')' ? '(' : '[';
+        if (!opens.length) throw new PyError(lineNo, `Лишняя закрывающая скобка «${op}»`, 'У этой скобки нет пары. Уберите её или добавьте открывающую.');
+        if (opens[opens.length - 1].ch !== want) throw new PyError(lineNo, `Скобки перепутаны: открыта «${opens[opens.length - 1].ch}», а закрыта «${op}»`, 'Круглую скобку закрывают круглой, квадратную — квадратной.');
+        opens.pop();
+      }
+      cur.toks.push({ t: 'op', v: op, line: lineNo });
+      i += op.length;
+    }
+    if (cur && opens.length === 0) { logical.push(cur); cur = null; }
+  }
+  if (cur) {
+    const o = opens[opens.length - 1];
+    throw new PyError(o.line, `Скобка «${o.ch}» не закрыта`, `Добавьте в конце строки закрывающую скобку «${o.ch === '(' ? ')' : ']'}».`);
+  }
+  return logical;
+}
+
+/* ---------- parser ---------- */
+class Parser {
+  constructor(toks, line) { this.toks = toks; this.p = 0; this.line = line; }
+  peek(o = 0) { return this.toks[this.p + o]; }
+  next() { return this.toks[this.p++]; }
+  atEnd() { return this.p >= this.toks.length; }
+  isOp(v) { const t = this.peek(); return !!t && t.t === 'op' && t.v === v; }
+  isKw(v) { const t = this.peek(); return !!t && t.t === 'kw' && t.v === v; }
+  err(msg, hint) {
+    const t = this.peek() || this.toks[this.toks.length - 1];
+    return new PyError(t ? t.line : this.line, msg, hint);
+  }
+  expectOp(v, msg, hint) { if (!this.isOp(v)) throw this.err(msg || `Ожидался символ «${v}»`, hint); return this.next(); }
+
+  expr() { return this.orE(); }
+  orE() { let a = this.andE(); while (this.isKw('or')) { this.next(); a = { k: 'or', a, b: this.andE() }; } return a; }
+  andE() { let a = this.notE(); while (this.isKw('and')) { this.next(); a = { k: 'and', a, b: this.notE() }; } return a; }
+  notE() { if (this.isKw('not')) { this.next(); return { k: 'not', a: this.notE() }; } return this.cmpE(); }
+  cmpE() {
+    const first = this.sum(), rest = [];
+    for (;;) {
+      const t = this.peek();
+      if (!t) break;
+      let op = null;
+      if (t.t === 'op' && ['==', '!=', '<', '>', '<=', '>='].includes(t.v)) { op = t.v; this.next(); }
+      else if (t.t === 'kw' && t.v === 'in') { op = 'in'; this.next(); }
+      else if (t.t === 'kw' && t.v === 'not' && this.peek(1) && this.peek(1).v === 'in') { op = 'not in'; this.p += 2; }
+      else if (t.t === 'kw' && t.v === 'is') { this.next(); if (this.isKw('not')) { this.next(); op = '!='; } else op = '=='; }
+      else break;
+      rest.push({ op, e: this.sum() });
+    }
+    return rest.length ? { k: 'cmp', first, rest } : first;
+  }
+  sum() { let a = this.term(); while (this.isOp('+') || this.isOp('-')) { const op = this.next().v; a = { k: 'bin', op, a, b: this.term() }; } return a; }
+  term() { let a = this.unary(); while (this.isOp('*') || this.isOp('/') || this.isOp('//') || this.isOp('%')) { const op = this.next().v; a = { k: 'bin', op, a, b: this.unary() }; } return a; }
+  unary() { if (this.isOp('-') || this.isOp('+')) { const op = this.next().v; return { k: 'un', op, a: this.unary() }; } return this.power(); }
+  power() { const a = this.postfix(); if (this.isOp('**')) { this.next(); return { k: 'bin', op: '**', a, b: this.unary() }; } return a; }
+  postfix() {
+    let e = this.atom();
+    for (;;) {
+      if (this.isOp('(')) {
+        const open = this.next();
+        const { args, kw } = this.callArgs(open);
+        e = { k: 'call', f: e, args, kw };
+      } else if (this.isOp('[')) {
+        this.next();
+        const i = this.expr();
+        this.expectOp(']', 'Не хватает закрывающей скобки «]»');
+        e = { k: 'idx', a: e, i };
+      } else if (this.isOp('.')) {
+        const t = this.next();
+        throw new PyError(t.line, 'Точка «.» после имени здесь не поддерживается',
+          e.k === 'name' ? `В этом тренажёре команды пишутся без «${e.name}.», например forward(100) вместо ${e.name}.forward(100).` : null);
+      } else return e;
+    }
+  }
+  callArgs(open) {
+    const args = [], kw = {};
+    if (this.isOp(')')) { this.next(); return { args, kw }; }
+    for (;;) {
+      const t = this.peek();
+      if (t && t.t === 'name' && this.peek(1) && this.peek(1).t === 'op' && this.peek(1).v === '=') {
+        this.p += 2; kw[t.v] = this.expr();
+      } else {
+        if (Object.keys(kw).length) throw this.err('Обычные значения в скобках пишутся раньше именованных');
+        args.push(this.expr());
+      }
+      if (this.isOp(',')) { this.next(); if (this.isOp(')')) { this.next(); break; } continue; }
+      if (this.isOp(')')) { this.next(); break; }
+      const bad = this.peek();
+      if (!bad) throw this.err('Не хватает закрывающей скобки «)»');
+      if (bad.line !== open.line) throw new PyError(open.line, 'Скобка «(» не закрыта', 'Добавьте в конце строки закрывающую скобку «)».');
+      throw this.err('Между значениями в скобках нужна запятая', 'Например: goto(100, 50)');
+    }
+    return { args, kw };
+  }
+  atom() {
+    const t = this.peek();
+    if (!t) throw this.err('Строка обрывается: не хватает значения', 'Похоже, после знака, запятой или скобки ничего не написано.');
+    if (t.t === 'num') { this.next(); return { k: 'const', v: t.v }; }
+    if (t.t === 'str') { this.next(); let v = t.v; while (this.peek() && this.peek().t === 'str') v += this.next().v; return { k: 'const', v }; }
+    if (t.t === 'name') { this.next(); return { k: 'name', name: t.v }; }
+    if (t.t === 'kw') {
+      if (t.v === 'True') { this.next(); return { k: 'const', v: true }; }
+      if (t.v === 'False') { this.next(); return { k: 'const', v: false }; }
+      if (t.v === 'None') { this.next(); return { k: 'const', v: null }; }
+      throw this.err(`Слово «${t.v}» нельзя использовать в этом месте`, `«${t.v}» — служебное слово Python. Возможно, строка написана не полностью.`);
+    }
+    if (t.v === '(') {
+      const open = this.next();
+      if (this.isOp(')')) { this.next(); return { k: 'list', items: [], tuple: true }; }
+      const e = this.expr();
+      if (this.isOp(',')) {
+        const items = [e];
+        while (this.isOp(',')) { this.next(); if (this.isOp(')')) break; items.push(this.expr()); }
+        this.expectOp(')', 'Не хватает закрывающей скобки «)»');
+        return { k: 'list', items, tuple: true };
+      }
+      if (!this.isOp(')')) {
+        const bad = this.peek();
+        if (bad && bad.line !== open.line) throw new PyError(open.line, 'Скобка «(» не закрыта', 'Добавьте закрывающую скобку «)».');
+      }
+      this.expectOp(')', 'Не хватает закрывающей скобки «)»');
+      return e;
+    }
+    if (t.v === '[') {
+      this.next();
+      const items = [];
+      while (!this.isOp(']')) {
+        items.push(this.expr());
+        if (this.isOp(',')) this.next();
+        else if (!this.isOp(']')) throw this.err('В списке значения разделяются запятыми', 'Например: ["red", "green", "blue"]');
+      }
+      this.next();
+      return { k: 'list', items };
+    }
+    if (t.v === '=') throw this.err('Знак «=» стоит не на месте', 'Чтобы сравнить два значения, пишут два знака: ==');
+    throw this.err(`Неожиданный символ «${t.v}»`);
+  }
+}
+
+const COLON_EX = {
+  for: 'Например: for i in range(4):', while: 'Например: while x < 100:', if: 'Например: if x > 0:',
+  elif: 'Например: elif x == 0:', else: 'Пишут просто: else:', def: 'Например: def square(size):'
+};
+
+function parseProgram(src) {
+  const lines = lex(src);
+  let idx = 0;
+
+  function suite(indent) {
+    const body = [];
+    while (idx < lines.length) {
+      const L = lines[idx];
+      if (L.indent < indent) break;
+      if (L.indent > indent) throw new PyError(L.line, 'Лишний отступ в начале строки', 'Эта строка не внутри цикла или условия. Уберите пробелы в начале или выровняйте её по соседним строкам.');
+      body.push(stmt(L));
+    }
+    return body;
+  }
+  function colon(P, name) {
+    if (P.isOp('=') && (name === 'if' || name === 'while' || name === 'elif')) throw P.err('Для сравнения нужны два знака «==»', `Один знак «=» записывает значение в переменную, а «==» сравнивает. ${COLON_EX[name]}`);
+    if (!P.isOp(':')) throw P.err(`В конце строки с ${name} нужно двоеточие «:»`, COLON_EX[name]);
+    P.next();
+  }
+  function block(L, P, name) {
+    if (!P.atEnd()) {
+      const s = simple(P, L);
+      idx++;
+      return [s];
+    }
+    idx++;
+    const N = lines[idx];
+    if (!N || N.indent <= L.indent) {
+      throw new PyError(N ? N.line : L.line, `После строки с ${name} нужны строки с отступом`,
+        `Команды внутри «${name}» сдвигаются вправо на 4 пробела (клавиша Tab). Сейчас под строкой ${L.line} нет ни одной такой команды.`);
+    }
+    return suite(N.indent);
+  }
+  function simple(P, L) {
+    const t = P.peek();
+    let s;
+    if (t.t === 'kw' && !['True', 'False', 'None', 'not'].includes(t.v)) {
+      P.next();
+      switch (t.v) {
+        case 'pass': s = { k: 'pass' }; break;
+        case 'break': case 'continue': s = { k: t.v }; break;
+        case 'return': s = { k: 'return', e: P.atEnd() ? null : P.expr() }; break;
+        case 'global': {
+          const names = [];
+          do { const n = P.next(); if (!n || n.t !== 'name') throw P.err('После global нужно имя переменной'); names.push(n.v); } while (P.isOp(',') && P.next());
+          s = { k: 'global', names }; break;
+        }
+        case 'from': {
+          const m = P.next();
+          if (!m || m.t !== 'name') throw new PyError(L.line, 'После from нужно имя модуля', 'Правильно: from turtle import *');
+          if (!P.isKw('import')) throw P.err('После имени модуля нужно слово import', 'Правильно: from turtle import *');
+          P.next();
+          if (P.isOp('*')) { P.next(); s = { k: 'import', mod: m.v, star: true }; break; }
+          const names = [];
+          do { const n = P.next(); if (!n || n.t !== 'name') throw P.err('После import нужна звёздочка * или имена команд', 'Правильно: from turtle import *'); names.push(n.v); } while (P.isOp(',') && P.next());
+          s = { k: 'import', mod: m.v, names }; break;
+        }
+        case 'import': {
+          const m = P.next();
+          if (!m || m.t !== 'name') throw new PyError(L.line, 'После import нужно имя модуля', 'Правильно: from turtle import *');
+          if (['turtle', 'random', 'math'].includes(m.v)) throw new PyError(L.line, `Здесь используется запись from ${m.v} import *`, `Замените строку на: from ${m.v} import *  — и пишите команды без «${m.v}.», например forward(100).`);
+          while (!P.atEnd()) P.next();
+          s = { k: 'import', mod: m.v, plain: true }; break;
+        }
+        case 'elif': case 'else':
+          throw new PyError(L.line, `«${t.v}» без «if»`, `Строка с ${t.v} должна стоять ровно под своим if — с таким же отступом.`);
+        case 'for': case 'while': case 'if': case 'def':
+          throw new PyError(L.line, `«${t.v}» нельзя писать после двоеточия на той же строке`, 'Перенесите его на новую строку с отступом.');
+        default:
+          throw new PyError(L.line, `Конструкция «${t.v}» в этом тренажёре не поддерживается`, 'Здесь можно использовать команды черепашки, переменные, for, while, if и def.');
+      }
+    } else {
+      const e = P.expr();
+      if (P.isOp('=')) {
+        P.next();
+        if (e.k !== 'name' && e.k !== 'idx') throw new PyError(L.line, 'Слева от «=» должно стоять имя переменной', 'Например: size = 100. Чтобы сравнить значения, пишут ==');
+        s = { k: 'assign', t: e, op: null, e: P.expr() };
+      } else if (P.peek() && P.peek().t === 'op' && ['+=', '-=', '*=', '/=', '//=', '%=', '**='].includes(P.peek().v)) {
+        const op = P.next().v.slice(0, -1);
+        if (e.k !== 'name' && e.k !== 'idx') throw new PyError(L.line, `Слева от «${op}=» должно стоять имя переменной`);
+        s = { k: 'assign', t: e, op, e: P.expr() };
+      } else s = { k: 'expr', e };
+      if (!P.atEnd()) {
+        const left = P.peek();
+        if (e.k === 'name' && (left.t === 'num' || left.t === 'str' || left.t === 'name')) {
+          const arg = left.t === 'str' ? `"${left.v}"` : left.v;
+          throw new PyError(L.line, `После «${e.name}» нужны скобки`, `Значение пишут в скобках сразу после имени команды: ${e.name}(${arg})`);
+        }
+        if (left.t === 'op' && left.v === ':') throw new PyError(L.line, 'Двоеточие здесь не нужно', 'Двоеточие ставят только в конце строк с for, while, if, else и def.');
+        throw P.err(`Лишнее в конце строки: «${left.v}»`, 'Похоже, в одной строке написаны две команды или пропущен знак.');
+      }
+    }
+    if (!P.atEnd()) throw P.err(`Лишнее в конце строки: «${P.peek().v}»`);
+    s.line = L.line;
+    return s;
+  }
+  function stmt(L) {
+    const P = new Parser(L.toks, L.line);
+    const t = P.peek();
+    if (t.t === 'kw' && t.v === 'for') {
+      P.next();
+      const v = P.next();
+      if (!v || v.t !== 'name') throw new PyError(L.line, 'После for нужно имя переменной', COLON_EX.for);
+      if (!P.isKw('in')) throw P.err('В строке с for пропущено слово in', COLON_EX.for);
+      P.next();
+      const it = P.expr();
+      colon(P, 'for');
+      return { k: 'for', v: v.v, it, line: L.line, body: block(L, P, 'for') };
+    }
+    if (t.t === 'kw' && t.v === 'while') {
+      P.next();
+      const test = P.expr();
+      colon(P, 'while');
+      return { k: 'while', test, line: L.line, body: block(L, P, 'while') };
+    }
+    if (t.t === 'kw' && t.v === 'if') {
+      P.next();
+      const conds = [];
+      let els = null;
+      const test = P.expr();
+      colon(P, 'if');
+      conds.push({ test, line: L.line, body: block(L, P, 'if') });
+      while (idx < lines.length && lines[idx].indent === L.indent) {
+        const N = lines[idx], f = N.toks[0];
+        if (f.t !== 'kw' || (f.v !== 'elif' && f.v !== 'else')) break;
+        const Q = new Parser(N.toks, N.line);
+        Q.next();
+        if (f.v === 'elif') {
+          const te = Q.expr();
+          colon(Q, 'elif');
+          conds.push({ test: te, line: N.line, body: block(N, Q, 'elif') });
+        } else {
+          colon(Q, 'else');
+          els = block(N, Q, 'else');
+          break;
+        }
+      }
+      return { k: 'if', conds, els, line: L.line };
+    }
+    if (t.t === 'kw' && t.v === 'def') {
+      P.next();
+      const n = P.next();
+      if (!n || n.t !== 'name') throw new PyError(L.line, 'После def нужно имя функции', COLON_EX.def);
+      P.expectOp('(', 'После имени функции нужны скобки', COLON_EX.def);
+      const params = [];
+      while (!P.isOp(')')) {
+        const pn = P.next();
+        if (!pn || pn.t !== 'name') throw new PyError(L.line, 'В скобках у def пишут имена параметров', COLON_EX.def);
+        let def = null;
+        if (P.isOp('=')) { P.next(); def = P.expr(); }
+        params.push({ name: pn.v, def });
+        if (P.isOp(',')) P.next();
+        else if (!P.isOp(')')) throw P.err('Параметры разделяются запятыми', 'Например: def rect(width, height):');
+      }
+      P.next();
+      colon(P, 'def');
+      return { k: 'def', name: n.v, params, line: L.line, body: block(L, P, 'def') };
+    }
+    const s = simple(P, L);
+    idx++;
+    return s;
+  }
+
+  const prog = suite(0);
+  if (idx < lines.length) throw new PyError(lines[idx].line, 'Неправильный отступ', 'Отступ не совпадает ни с одной строкой выше. Выровняйте строку по соседним.');
+  return prog;
+}
+
+/* ---------- helpers ---------- */
+function isNum(v) { return typeof v === 'number' || typeof v === 'boolean'; }
+function truthy(v) {
+  if (v === null || v === false || v === 0 || v === '') return false;
+  if (Array.isArray(v)) return v.length > 0;
+  if (v && v.__range) return rangeLen(v) > 0;
+  return true;
+}
+function rangeLen(r) { return Math.max(0, Math.ceil((r.stop - r.start) / r.step)); }
+function fmtNum(v) {
+  if (v === Infinity) return 'inf';
+  if (v === -Infinity) return '-inf';
+  if (Number.isNaN(v)) return 'nan';
+  return String(v);
+}
+function pyStr(v) {
+  if (v === null || v === undefined) return 'None';
+  if (v === true) return 'True';
+  if (v === false) return 'False';
+  if (typeof v === 'number') return fmtNum(v);
+  if (typeof v === 'string') return v;
+  if (Array.isArray(v)) {
+    const inner = v.map(pyRepr).join(', ');
+    return v.tuple ? `(${inner}${v.length === 1 ? ',' : ''})` : `[${inner}]`;
+  }
+  if (v.__range) return v.step === 1 ? `range(${v.start}, ${v.stop})` : `range(${v.start}, ${v.stop}, ${v.step})`;
+  if (v.fn) return `<функция ${v.name}>`;
+  return String(v);
+}
+function pyRepr(v) { return typeof v === 'string' ? `'${v}'` : pyStr(v); }
+function typeName(v) {
+  if (v === null || v === undefined) return 'пустое значение None';
+  if (typeof v === 'boolean') return 'логическое значение';
+  if (typeof v === 'number') return 'число';
+  if (typeof v === 'string') return 'текст';
+  if (Array.isArray(v)) return v.tuple ? 'кортеж' : 'список';
+  if (v.__range) return 'range';
+  if (v.fn) return 'команда';
+  return 'значение';
+}
+function pyEq(a, b) {
+  if (isNum(a) && isNum(b)) return +a === +b;
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => pyEq(x, b[i]));
+  return a === b;
+}
+function lev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++) {
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+    }
+  return d[a.length][b.length];
+}
+function suggest(name, cands) {
+  let best = null, bd = Infinity;
+  const ln = name.toLowerCase();
+  for (const c of cands) { const d = lev(ln, c.toLowerCase()); if (d < bd) { bd = d; best = c; } }
+  return bd <= Math.max(1, Math.floor(name.length / 3)) ? best : null;
+}
+const RU_LAYOUT = 'йцукенгшщзхъфывапролджэячсмитьбю', EN_LAYOUT = "qwertyuiop[]asdfghjkl;'zxcvbnm,.";
+function fromRuLayout(s) {
+  let out = '';
+  for (const ch of s.toLowerCase()) { const i = RU_LAYOUT.indexOf(ch); out += i >= 0 ? EN_LAYOUT[i] : ch; }
+  return out;
+}
+const RU_WORDS = {
+  'вперед': 'forward', 'вперёд': 'forward', 'назад': 'backward', 'налево': 'left', 'влево': 'left',
+  'направо': 'right', 'вправо': 'right', 'цвет': 'color', 'круг': 'circle', 'перейти': 'goto',
+  'поднять': 'penup', 'опустить': 'pendown', 'повтори': 'for i in range(…):', 'повторить': 'for i in range(…):'
+};
+const COLORS = [
+  ['red', 'красный'], ['orange', 'оранжевый'], ['yellow', 'жёлтый'], ['green', 'зелёный'],
+  ['skyblue', 'голубой'], ['blue', 'синий'], ['purple', 'фиолетовый'], ['pink', 'розовый'],
+  ['brown', 'коричневый'], ['black', 'чёрный'], ['gray', 'серый'], ['white', 'белый'],
+  ['gold', 'золотой'], ['lime', 'салатовый']
+];
+const RU_COLORS = Object.fromEntries(COLORS.map(([en, ru]) => [ru, en]).concat([['желтый', 'yellow'], ['зеленый', 'green'], ['черный', 'black'], ['золотистый', 'gold']]));
+
+const _cc = document.createElement('canvas').getContext('2d');
+function cssColorOk(s) {
+  _cc.fillStyle = '#010203'; _cc.fillStyle = s; const a = _cc.fillStyle;
+  _cc.fillStyle = '#030201'; _cc.fillStyle = s; const b = _cc.fillStyle;
+  return a === b;
+}
+
+class Signal { constructor(kind, v) { this.kind = kind; this.v = v; } }
+const BREAK = new Signal('break'), CONTINUE = new Signal('continue');
+
+/* ---------- interpreter ---------- */
+class Interp {
+  constructor() {
+    this.ops = [];
+    this.steps = 0;
+    this.depth = 0;
+    this.curLine = 1;
+    this.t0 = Date.now();
+    this.globals = new Map();
+    this.G = { vars: this.globals, glob: null, isGlobal: true };
+    this.T = { x: 0, y: 0, h: 0, pen: true, pc: 'black', fc: 'black', ps: 1, sp: 3, vis: true, shape: 'turtle', fill: null };
+    this.core = this.makeCore();
+    this.mods = { turtle: this.makeTurtle(), random: this.makeRandom(), math: this.makeMath() };
+  }
+  err(msg, hint) { return new PyError(this.curLine, msg, hint); }
+
+  run(prog) {
+    try { this.execBlock(prog, this.G); }
+    catch (e) {
+      if (e === BREAK || e === CONTINUE) throw this.err(`«${e.kind}» можно писать только внутри цикла`);
+      if (e instanceof Signal) throw this.err('«return» можно писать только внутри функции (def)');
+      throw e;
+    }
+  }
+  tick() {
+    if (++this.steps > MAX_STEPS || (this.steps % 20000 === 0 && Date.now() - this.t0 > MAX_MS))
+      throw this.err('Программа работает слишком долго', 'Похоже, цикл никогда не заканчивается. Проверьте условие в while или число в range().');
+  }
+  execBlock(stmts, sc) { for (const s of stmts) this.exec(s, sc); }
+  exec(s, sc) {
+    this.curLine = s.line;
+    this.tick();
+    switch (s.k) {
+      case 'expr': {
+        const v = this.eval(s.e, sc);
+        if (v && v.fn && s.e.k === 'name') {
+          const ex = v.ex || `${s.e.name}()`;
+          throw this.err(`Команда «${s.e.name}» записана без скобок`, `Чтобы команда выполнилась, после её имени нужны скобки: ${ex}`);
+        }
+        return;
+      }
+      case 'assign': {
+        let v = this.eval(s.e, sc);
+        if (s.op) v = this.binop(s.op, this.eval(s.t, sc), v);
+        if (s.t.k === 'name') this.setVar(s.t.name, v, sc);
+        else {
+          const arr = this.eval(s.t.a, sc), i = this.eval(s.t.i, sc);
+          if (!Array.isArray(arr) || arr.tuple) throw this.err(`Нельзя менять элементы: это ${typeName(arr)}`);
+          arr[this.index(arr, i)] = v;
+        }
+        return;
+      }
+      case 'pass': return;
+      case 'global': if (!sc.isGlobal) s.names.forEach(n => sc.glob.add(n)); return;
+      case 'break': throw BREAK;
+      case 'continue': throw CONTINUE;
+      case 'return': throw new Signal('return', s.e ? this.eval(s.e, sc) : null);
+      case 'import': return this.doImport(s, sc);
+      case 'def': {
+        this.setVar(s.name, { fn: 'user', name: s.name, params: s.params.map(p => ({ name: p.name, def: p.def ? this.eval(p.def, sc) : undefined })), body: s.body }, sc);
+        return;
+      }
+      case 'if': {
+        for (const c of s.conds) {
+          this.curLine = c.line;
+          if (truthy(this.eval(c.test, sc))) { this.execBlock(c.body, sc); return; }
+        }
+        if (s.els) this.execBlock(s.els, sc);
+        return;
+      }
+      case 'while': {
+        for (;;) {
+          this.curLine = s.line;
+          this.tick();
+          if (!truthy(this.eval(s.test, sc))) break;
+          try { this.execBlock(s.body, sc); }
+          catch (e) { if (e === BREAK) break; if (e === CONTINUE) continue; throw e; }
+        }
+        return;
+      }
+      case 'for': {
+        const it = this.iterOf(this.eval(s.it, sc));
+        for (const v of it) {
+          this.curLine = s.line;
+          this.setVar(s.v, v, sc);
+          try { this.execBlock(s.body, sc); }
+          catch (e) { if (e === BREAK) break; if (e === CONTINUE) continue; throw e; }
+        }
+        return;
+      }
+    }
+  }
+  doImport(s, sc) {
+    const mod = this.mods[s.mod];
+    if (s.plain) {
+      if (mod) throw this.err(`Здесь используется запись from ${s.mod} import *`, `Замените строку на: from ${s.mod} import *  — и пишите команды без «${s.mod}.», например forward(100).`);
+      throw this.err(`Модуль «${s.mod}» здесь недоступен`, 'Можно подключить: from turtle import *, from random import *, from math import *');
+    }
+    if (!mod) throw this.err(`Модуль «${s.mod}» здесь недоступен`, s.mod.toLowerCase() === 'turtle' ? 'Имя модуля пишется маленькими буквами: from turtle import *' : 'Можно подключить: turtle, random и math. Например: from turtle import *');
+    if (s.star) { for (const k of Object.keys(mod)) this.setVar(k, mod[k], sc); return; }
+    for (const n of s.names) {
+      if (!(n in mod)) { const sg = suggest(n, Object.keys(mod)); throw this.err(`В модуле ${s.mod} нет «${n}»`, sg ? `Может быть, вы имели в виду «${sg}»?` : null); }
+      this.setVar(n, mod[n], sc);
+    }
+  }
+  setVar(name, v, sc) {
+    if (sc.isGlobal || sc.glob.has(name)) this.globals.set(name, v);
+    else sc.vars.set(name, v);
+  }
+  lookup(name, sc) {
+    if (!sc.isGlobal && sc.vars.has(name) && !sc.glob.has(name)) return sc.vars.get(name);
+    if (this.globals.has(name)) return this.globals.get(name);
+    if (name in this.core) return this.core[name];
+    throw this.nameError(name, sc);
+  }
+  nameError(name, sc) {
+    for (const [m, defs] of Object.entries(this.mods)) {
+      if (name in defs) return this.err(`Команда «${name}» пока неизвестна`, `Она есть в модуле ${m}. Первой строкой программы напишите: from ${m} import *`);
+    }
+    const known = new Set([...this.globals.keys(), ...Object.keys(this.core), ...Object.keys(this.mods.turtle)]);
+    if (!sc.isGlobal) for (const k of sc.vars.keys()) known.add(k);
+    const lat = fromRuLayout(name);
+    if (lat !== name.toLowerCase() && known.has(lat)) return this.err(`Имя «${name}» не найдено`, `Похоже, включена русская раскладка клавиатуры. Вы хотели написать «${lat}»?`);
+    const low = name.toLowerCase();
+    if (RU_WORDS[low]) return this.err(`Команды «${name}» нет`, `Команды пишутся по-английски: ${RU_WORDS[low]}`);
+    if (COLORS.some(c => c[0] === low)) return this.err(`Имя «${name}» не найдено`, `Название цвета пишут в кавычках: color("${low}")`);
+    const sg = suggest(name, known);
+    return this.err(`Имя «${name}» не найдено`, sg ? `Может быть, вы имели в виду «${sg}»?` : 'Проверьте, нет ли опечатки. Если это переменная, сначала задайте ей значение, например: size = 100');
+  }
+
+  eval(e, sc) {
+    switch (e.k) {
+      case 'const': return e.v;
+      case 'name': return this.lookup(e.name, sc);
+      case 'list': { const a = e.items.map(x => this.eval(x, sc)); if (e.tuple) a.tuple = true; return a; }
+      case 'un': {
+        const v = this.eval(e.a, sc);
+        if (!isNum(v)) throw this.err(`Знак «${e.op}» нельзя ставить перед значением типа «${typeName(v)}»`);
+        return e.op === '-' ? -v : +v;
+      }
+      case 'not': return !truthy(this.eval(e.a, sc));
+      case 'and': { const a = this.eval(e.a, sc); return truthy(a) ? this.eval(e.b, sc) : a; }
+      case 'or': { const a = this.eval(e.a, sc); return truthy(a) ? a : this.eval(e.b, sc); }
+      case 'bin': return this.binop(e.op, this.eval(e.a, sc), this.eval(e.b, sc));
+      case 'cmp': {
+        let left = this.eval(e.first, sc);
+        for (const r of e.rest) {
+          const right = this.eval(r.e, sc);
+          if (!this.compare(r.op, left, right)) return false;
+          left = right;
+        }
+        return true;
+      }
+      case 'idx': {
+        const a = this.eval(e.a, sc), i = this.eval(e.i, sc);
+        if (typeof a === 'string' || Array.isArray(a)) return a[this.index(a, i)];
+        throw this.err(`Квадратные скобки можно ставить после списка или текста, а здесь ${typeName(a)}`);
+      }
+      case 'call': {
+        const f = this.eval(e.f, sc);
+        const args = e.args.map(a => this.eval(a, sc));
+        const kw = {};
+        for (const k in e.kw) kw[k] = this.eval(e.kw[k], sc);
+        if (!f || !f.fn) {
+          const nm = e.f.k === 'name' ? e.f.name : null;
+          if (nm && nm in this.mods.turtle) throw this.err(`«${nm}» больше не команда`, `Раньше в программе в «${nm}» записали ${typeName(f)}. Не называйте переменные так же, как команды черепашки.`);
+          throw this.err(`${nm ? `«${nm}»` : 'Это'} — ${typeName(f)}, а не команда. Скобки после него ставить нельзя.`);
+        }
+        return f.fn === 'b' ? this.callBuiltin(f, args, kw) : this.callUser(f, args, kw);
+      }
+    }
+    throw this.err('Непонятное выражение');
+  }
+  index(a, i) {
+    if (typeof i !== 'number' || !Number.isInteger(i)) throw this.err('Номер элемента должен быть целым числом');
+    const j = i < 0 ? a.length + i : i;
+    if (j < 0 || j >= a.length) throw this.err(`Элемента с номером ${i} нет`, `Номера идут от 0 до ${a.length - 1}.`);
+    return j;
+  }
+  binop(op, a, b) {
+    const na = isNum(a), nb = isNum(b);
+    switch (op) {
+      case '+':
+        if (na && nb) return +a + +b;
+        if (typeof a === 'string' && typeof b === 'string') return a + b;
+        if (Array.isArray(a) && Array.isArray(b)) { const r = a.concat(b); if (a.tuple) r.tuple = true; return r; }
+        if ((typeof a === 'string' && nb) || (na && typeof b === 'string'))
+          throw this.err('Нельзя сложить текст и число', 'Чтобы приклеить число к тексту, превратите его в текст: "Шаг " + str(n)');
+        break;
+      case '-': if (na && nb) return a - b; break;
+      case '*':
+        if (na && nb) return a * b;
+        if (typeof a === 'string' && nb) return a.repeat(Math.max(0, b));
+        if (na && typeof b === 'string') return b.repeat(Math.max(0, a));
+        if (Array.isArray(a) && nb) { let r = []; for (let i = 0; i < b; i++) r = r.concat(a); return r; }
+        break;
+      case '/': case '//': case '%':
+        if (na && nb) {
+          if (+b === 0) throw this.err('Деление на ноль', 'На ноль делить нельзя. Проверьте, что делитель не равен 0.');
+          if (op === '/') return a / b;
+          if (op === '//') return Math.floor(a / b);
+          return ((a % b) + +b) % b;
+        }
+        break;
+      case '**': if (na && nb) return Math.pow(a, b); break;
+    }
+    throw this.err(`Операцию «${op}» нельзя выполнить: слева ${typeName(a)}, справа ${typeName(b)}`);
+  }
+  compare(op, a, b) {
+    switch (op) {
+      case '==': return pyEq(a, b);
+      case '!=': return !pyEq(a, b);
+      case 'in': case 'not in': {
+        let r;
+        if (typeof b === 'string') { if (typeof a !== 'string') throw this.err('Внутри текста можно искать только текст'); r = b.includes(a); }
+        else if (Array.isArray(b)) r = b.some(x => pyEq(x, a));
+        else if (b && b.__range) r = [...this.iterOf(b)].includes(a);
+        else throw this.err(`Слово in работает со списком или текстом, а здесь ${typeName(b)}`);
+        return op === 'in' ? r : !r;
+      }
+    }
+    if ((isNum(a) && isNum(b)) || (typeof a === 'string' && typeof b === 'string')) {
+      if (op === '<') return a < b;
+      if (op === '>') return a > b;
+      if (op === '<=') return a <= b;
+      if (op === '>=') return a >= b;
+    }
+    throw this.err(`Нельзя сравнить: слева ${typeName(a)}, справа ${typeName(b)}`, 'Сравнивать знаками < и > можно числа с числами или текст с текстом.');
+  }
+  *iterOf(v) {
+    if (v && v.__range) {
+      const { start, stop, step } = v;
+      if (step > 0) for (let i = start; i < stop; i += step) yield i;
+      else for (let i = start; i > stop; i += step) yield i;
+      return;
+    }
+    if (Array.isArray(v)) { yield* v.slice(); return; }
+    if (typeof v === 'string') { yield* [...v]; return; }
+    throw this.err(`По значению типа «${typeName(v)}» нельзя пройти циклом for`, 'Обычно пишут так: for i in range(4):');
+  }
+  callBuiltin(f, args, kw) {
+    if (f.vararg) return f.impl(args, kw, f.name);
+    const n = f.params.length;
+    const ex = f.ex ? `Пример: ${f.ex}` : null;
+    if (args.length > n) {
+      if (n === 0) throw this.err(`У ${f.name}() скобки должны быть пустыми`, ex);
+      throw this.err(`У ${f.name}() слишком много значений в скобках: ${args.length}, а можно не больше ${n}`, ex);
+    }
+    const a = args.slice();
+    for (const k in kw) {
+      const i = f.params.indexOf(k);
+      if (i < 0) throw this.err(`У команды ${f.name}() нет параметра «${k}»`, ex);
+      a[i] = kw[k];
+    }
+    for (let i = 0; i < f.min; i++) {
+      if (a[i] === undefined) {
+        if (args.length === 0) throw this.err(`В скобках у ${f.name}() нужно указать ${f.what || 'значение'}`, ex);
+        throw this.err(`У ${f.name}() не хватает значений в скобках: нужно ${f.min}, а написано ${args.length}`, ex);
+      }
+    }
+    const r = f.impl(a, f.name);
+    return r === undefined ? null : r;
+  }
+  callUser(f, args, kw) {
+    if (this.depth >= MAX_DEPTH) throw this.err('Слишком много вложенных вызовов функций', 'Похоже, функция вызывает сама себя без остановки.');
+    const sc = { vars: new Map(), glob: new Set(), isGlobal: false };
+    if (args.length > f.params.length) throw this.err(`Функция ${f.name}() принимает значений: ${f.params.length}, а передано ${args.length}`);
+    f.params.forEach((p, i) => {
+      let v = i < args.length ? args[i] : (p.name in kw ? kw[p.name] : p.def);
+      if (v === undefined) throw this.err(`Функции ${f.name}() не хватает значения для «${p.name}»`);
+      sc.vars.set(p.name, v);
+    });
+    for (const k in kw) if (!f.params.some(p => p.name === k)) throw this.err(`У функции ${f.name}() нет параметра «${k}»`);
+    const saved = this.curLine;
+    this.depth++;
+    try { this.execBlock(f.body, sc); }
+    catch (e) {
+      if (e instanceof Signal && e.kind === 'return') return e.v;
+      if (e === BREAK || e === CONTINUE) throw this.err(`«${e.kind}» можно писать только внутри цикла`);
+      throw e;
+    } finally { this.depth--; this.curLine = saved; }
+    return null;
+  }
+
+  /* number / color argument checks */
+  num(v, fname, ex) {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'boolean') return +v;
+    const quoted = typeof v === 'string' && v.trim() !== '' && !isNaN(+v);
+    throw this.err(`В скобках у ${fname}() должно быть число, а здесь ${typeName(v)}${typeof v === 'string' ? ` "${v}"` : ''}`,
+      quoted ? `Уберите кавычки вокруг числа: ${ex}` : `Пример: ${ex}`);
+  }
+  color(v, fname) {
+    if (typeof v === 'string') {
+      const s = v.trim().toLowerCase().replace(/\s+/g, '');
+      if ((/^[a-z]+$/.test(s) || /^#([0-9a-f]{3}|[0-9a-f]{6})$/.test(s)) && cssColorOk(s)) return s;
+      const ru = RU_COLORS[s];
+      if (ru) throw this.err(`Цвет «${v}» не найден`, `Названия цветов пишутся по-английски: ${fname}("${ru}")`);
+      const sg = suggest(s, COLORS.map(c => c[0]).concat(['cyan', 'magenta', 'violet', 'navy', 'darkgreen', 'lightblue', 'lightgreen', 'turquoise']));
+      throw this.err(`Неизвестный цвет «${v}»`, sg ? `Может быть, вы имели в виду "${sg}"?` : 'Попробуйте: "red", "green", "blue", "orange", "purple". Список цветов — в шпаргалке ниже.');
+    }
+    if (Array.isArray(v) && v.length === 3 && v.every(isNum)) {
+      const big = v.some(x => x > 1);
+      const c = v.map(x => Math.max(0, Math.min(255, Math.round(big ? +x : x * 255))));
+      return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+    }
+    throw this.err(`В скобках у ${fname}() должен быть цвет, а здесь ${typeName(v)}`, `Название цвета пишут в кавычках: ${fname}("red")`);
+  }
+
+  /* drawing operations recorded for the animator */
+  op(o) {
+    o.line = this.curLine;
+    o.sp = this.T.sp;
+    this.ops.push(o);
+    if (this.ops.length > MAX_OPS) throw this.err('Слишком много движений', 'В программе больше 150 000 движений. Возможно, цикл никогда не заканчивается или числа в range() слишком большие.');
+  }
+  look() { const T = this.T; this.op({ k: 'look', s: { pc: T.pc, fc: T.fc, vis: T.vis, shape: T.shape } }); }
+  lineTo(x, y) {
+    const T = this.T;
+    x = Math.round(x * 1e9) / 1e9; y = Math.round(y * 1e9) / 1e9;
+    if (!isFinite(x) || !isFinite(y)) throw this.err('Слишком большое число', 'Черепашка не может уйти так далеко.');
+    this.op({ k: 'move', x0: T.x, y0: T.y, x1: x, y1: y, pen: T.pen, c: T.pc, w: T.ps });
+    T.x = x; T.y = y;
+    if (T.fill) T.fill.push([x, y]);
+  }
+  fwd(d) { const r = this.T.h * Math.PI / 180; this.lineTo(this.T.x + d * Math.cos(r), this.T.y + d * Math.sin(r)); }
+  turn(delta, instant) {
+    if (!delta) return;
+    const T = this.T;
+    this.op({ k: 'turn', h0: T.h, h1: T.h + delta, instant: !!instant });
+    T.h = Math.round((((T.h + delta) % 360) + 360) % 360 * 1e9) / 1e9;
+    if (T.h === 360) T.h = 0;
+  }
+  setHeading(a) { const d = ((a - this.T.h) % 360 + 540) % 360 - 180; this.turn(d); }
+
+  makeCore() {
+    const I = this, core = {};
+    const def = (name, params, min, impl, extra) => { core[name] = Object.assign({ fn: 'b', name, params, min, impl }, extra || {}); };
+    def('print', [], 0, (args, kw) => {
+      const sep = kw.sep !== undefined ? pyStr(kw.sep) : ' ', end = kw.end !== undefined ? pyStr(kw.end) : '\n';
+      I.op({ k: 'print', text: args.map(pyStr).join(sep) + end });
+    }, { vararg: true });
+    def('range', [], 1, (args) => {
+      if (args.length < 1 || args.length > 3) throw I.err(`У range() должно быть от 1 до 3 чисел, а написано ${args.length}`, 'Например: range(4) — это 0, 1, 2, 3');
+      args.forEach(a => {
+        if (typeof a !== 'number' && typeof a !== 'boolean') throw I.err(`В скобках у range() должно быть целое число, а здесь ${typeName(a)}`, typeof a === 'string' ? 'Уберите кавычки: range(4)' : 'Например: range(4)');
+        if (!Number.isInteger(+a)) throw I.err(`В range() можно писать только целые числа, а здесь ${a}`, 'Например: range(4). Чтобы округлить, используйте int(x).');
+      });
+      let [start, stop, step] = args.length === 1 ? [0, +args[0], 1] : [+args[0], +args[1], args.length > 2 ? +args[2] : 1];
+      if (step === 0) throw I.err('Шаг в range() не может быть равен 0');
+      return { __range: true, start, stop, step };
+    }, { vararg: true });
+    def('len', ['x'], 1, ([x]) => {
+      if (typeof x === 'string' || Array.isArray(x)) return x.length;
+      if (x && x.__range) return rangeLen(x);
+      throw I.err(`У значения типа «${typeName(x)}» нет длины`);
+    }, { ex: 'len("привет")' });
+    def('abs', ['x'], 1, ([x]) => Math.abs(I.num(x, 'abs', 'abs(-5)')), { ex: 'abs(-5)', what: 'число' });
+    def('int', ['x'], 0, ([x]) => {
+      if (x === undefined) return 0;
+      if (isNum(x)) return Math.trunc(+x);
+      if (typeof x === 'string' && /^\s*[+-]?\d+\s*$/.test(x)) return parseInt(x, 10);
+      throw I.err(`Не получается превратить ${typeName(x)} ${pyRepr(x)} в целое число`);
+    }, { ex: 'int(3.7)' });
+    def('float', ['x'], 0, ([x]) => {
+      if (x === undefined) return 0;
+      if (isNum(x)) return +x;
+      if (typeof x === 'string' && x.trim() !== '' && !isNaN(+x)) return +x;
+      throw I.err(`Не получается превратить ${typeName(x)} ${pyRepr(x)} в число`);
+    }, { ex: 'float("2.5")' });
+    def('str', ['x'], 0, ([x]) => x === undefined ? '' : pyStr(x), { ex: 'str(100)' });
+    def('round', ['x', 'n'], 1, ([x, n]) => {
+      x = I.num(x, 'round', 'round(3.7)');
+      if (n === undefined || n === null) return Math.round(x);
+      return Number(x.toFixed(Math.max(0, I.num(n, 'round', 'round(3.14159, 2)'))));
+    }, { ex: 'round(3.7)', what: 'число' });
+    const minmax = (fname, pick) => (args) => {
+      const list = args.length === 1 ? [...I.iterOf(args[0])] : args;
+      if (!list.length) throw I.err(`${fname}() нужно хотя бы одно значение`, `Например: ${fname}(3, 7)`);
+      return list.reduce((a, b) => (I.compare(pick, b, a) ? b : a));
+    };
+    def('min', [], 1, minmax('min', '<'), { vararg: true });
+    def('max', [], 1, minmax('max', '>'), { vararg: true });
+    def('sum', ['items'], 1, ([x]) => [...I.iterOf(x)].reduce((a, b) => I.binop('+', a, b), 0), { ex: 'sum([1, 2, 3])' });
+    def('list', ['items'], 0, ([x]) => x === undefined ? [] : [...I.iterOf(x)], { ex: 'list(range(5))' });
+    def('input', [], 0, () => { throw I.err('input() здесь не работает', 'Задайте значение прямо в программе, например: size = 100'); }, { vararg: true });
+    return core;
+  }
+
+  makeTurtle() {
+    const I = this, T = this.T, m = {};
+    const def = (names, params, min, ex, impl, what) => {
+      for (const nm of names) m[nm] = { fn: 'b', name: nm, params, min, ex: ex.replace(names[0], nm), impl, what };
+    };
+    const N = (v, nm, ex) => I.num(v, nm, ex);
+    def(['forward', 'fd'], ['distance'], 1, 'forward(100)', ([d], nm) => I.fwd(N(d, nm, `${nm}(100)`)), 'число шагов');
+    def(['backward', 'back', 'bk'], ['distance'], 1, 'backward(100)', ([d], nm) => I.fwd(-N(d, nm, `${nm}(100)`)), 'число шагов');
+    def(['left', 'lt'], ['angle'], 1, 'left(90)', ([a], nm) => I.turn(N(a, nm, `${nm}(90)`)), 'угол в градусах');
+    def(['right', 'rt'], ['angle'], 1, 'right(90)', ([a], nm) => I.turn(-N(a, nm, `${nm}(90)`)), 'угол в градусах');
+    def(['penup', 'pu', 'up'], [], 0, 'penup()', () => { T.pen = false; });
+    def(['pendown', 'pd', 'down'], [], 0, 'pendown()', () => { T.pen = true; });
+    def(['isdown'], [], 0, 'isdown()', () => T.pen);
+    def(['goto', 'setpos', 'setposition'], ['x', 'y'], 1, 'goto(100, 50)', ([x, y], nm) => {
+      if (y === undefined) {
+        if (Array.isArray(x) && x.length === 2) { y = x[1]; x = x[0]; }
+        else throw I.err(`У ${nm}() нужно два числа: x и y`, 'Пример: goto(100, 50)');
+      }
+      I.lineTo(N(x, nm, 'goto(100, 50)'), N(y, nm, 'goto(100, 50)'));
+    }, 'координаты x и y');
+    def(['setx'], ['x'], 1, 'setx(100)', ([x]) => I.lineTo(N(x, 'setx', 'setx(100)'), T.y), 'число');
+    def(['sety'], ['y'], 1, 'sety(100)', ([y]) => I.lineTo(T.x, N(y, 'sety', 'sety(100)')), 'число');
+    def(['setheading', 'seth'], ['angle'], 1, 'setheading(90)', ([a], nm) => I.setHeading(N(a, nm, `${nm}(90)`)), 'угол в градусах');
+    def(['home'], [], 0, 'home()', () => { I.lineTo(0, 0); I.setHeading(0); });
+    def(['color'], ['a', 'b', 'c'], 0, 'color("red")', ([a, b, c]) => {
+      if (a === undefined) return Object.assign([T.pc, T.fc], { tuple: true });
+      if (c !== undefined) { T.pc = T.fc = I.color([a, b, c], 'color'); }
+      else if (b !== undefined) { T.pc = I.color(a, 'color'); T.fc = I.color(b, 'color'); }
+      else { T.pc = T.fc = I.color(a, 'color'); }
+      I.look();
+    });
+    def(['pencolor'], ['a', 'b', 'c'], 0, 'pencolor("red")', ([a, b, c]) => {
+      if (a === undefined) return T.pc;
+      T.pc = I.color(c !== undefined ? [a, b, c] : a, 'pencolor'); I.look();
+    });
+    def(['fillcolor'], ['a', 'b', 'c'], 0, 'fillcolor("yellow")', ([a, b, c]) => {
+      if (a === undefined) return T.fc;
+      T.fc = I.color(c !== undefined ? [a, b, c] : a, 'fillcolor'); I.look();
+    });
+    def(['bgcolor'], ['a', 'b', 'c'], 1, 'bgcolor("lightblue")', ([a, b, c]) => {
+      I.op({ k: 'bg', c: I.color(c !== undefined ? [a, b, c] : a, 'bgcolor') });
+    }, 'цвет');
+    def(['pensize', 'width'], ['width'], 0, 'pensize(5)', ([w], nm) => {
+      if (w === undefined) return T.ps;
+      w = N(w, nm, `${nm}(5)`);
+      if (w < 0) throw I.err('Толщина линии не может быть отрицательной', `Пример: ${nm}(5)`);
+      T.ps = w;
+    });
+    def(['speed'], ['speed'], 0, 'speed(5)', ([s]) => {
+      if (s === undefined) return T.sp;
+      const named = { fastest: 0, fast: 10, normal: 6, slow: 3, slowest: 1 };
+      if (typeof s === 'string') {
+        if (!(s in named)) throw I.err(`Непонятная скорость «${s}»`, 'Пишите число от 1 до 10 или 0 для мгновенного рисования: speed(5)');
+        T.sp = named[s];
+      } else {
+        s = N(s, 'speed', 'speed(5)');
+        T.sp = s > 0.5 && s < 10.5 ? Math.round(s) : 0;
+      }
+    });
+    def(['circle'], ['radius', 'extent', 'steps'], 1, 'circle(50)', ([r, ext, steps]) => {
+      r = N(r, 'circle', 'circle(50)');
+      ext = ext === undefined || ext === null ? 360 : N(ext, 'circle', 'circle(50, 180)');
+      const frac = Math.abs(ext) / 360;
+      steps = steps === undefined || steps === null ? 1 + Math.floor(Math.min(11 + Math.abs(r) / 6, 59) * frac) : Math.max(1, Math.round(N(steps, 'circle', 'circle(50, 360, 6)')));
+      let w = ext / steps, w2 = 0.5 * w, l = 2 * r * Math.sin(w * Math.PI / 360);
+      if (r < 0) { l = -l; w = -w; w2 = -w2; }
+      I.turn(w2, true);
+      for (let i = 0; i < steps; i++) { I.fwd(l); I.turn(w, true); }
+      I.turn(-w2, true);
+    }, 'радиус');
+    def(['dot'], ['size', 'color'], 0, 'dot(20)', ([size, col]) => {
+      if (typeof size === 'string' || Array.isArray(size)) { col = size; size = undefined; }
+      const d = size === undefined || size === null ? Math.max(T.ps + 4, T.ps * 2) : N(size, 'dot', 'dot(20)');
+      I.op({ k: 'dot', x: T.x, y: T.y, d, c: col === undefined ? T.pc : I.color(col, 'dot') });
+    });
+    def(['begin_fill'], [], 0, 'begin_fill()', () => {
+      if (T.fill) I.op({ k: 'fillcancel' });
+      T.fill = [[T.x, T.y]];
+      I.op({ k: 'fillstart' });
+    });
+    def(['end_fill'], [], 0, 'end_fill()', () => {
+      if (!T.fill) throw I.err('end_fill() без begin_fill()', 'Сначала напишите begin_fill(), потом нарисуйте фигуру, а в конце — end_fill().');
+      if (T.fill.length > 2) I.op({ k: 'fill', pts: T.fill, c: T.fc });
+      else I.op({ k: 'fillcancel' });
+      T.fill = null;
+    });
+    def(['filling'], [], 0, 'filling()', () => !!T.fill);
+    def(['hideturtle', 'ht'], [], 0, 'hideturtle()', () => { T.vis = false; I.look(); });
+    def(['showturtle', 'st'], [], 0, 'showturtle()', () => { T.vis = true; I.look(); });
+    def(['isvisible'], [], 0, 'isvisible()', () => T.vis);
+    def(['shape'], ['name'], 0, 'shape("turtle")', ([s]) => {
+      if (s === undefined) return T.shape;
+      if (!(s in SHAPES)) throw I.err(`Формы «${pyStr(s)}» нет`, `Можно: ${Object.keys(SHAPES).map(k => `"${k}"`).join(', ')}`);
+      T.shape = s; I.look();
+    });
+    def(['write'], ['text', 'move', 'align', 'font'], 1, 'write("Привет")', ([text, move, align, font]) => {
+      let size = 8, family = 'Arial', style = 'normal';
+      if (Array.isArray(font)) { family = font[0] ? pyStr(font[0]) : family; size = isNum(font[1]) ? +font[1] : size; style = font[2] ? pyStr(font[2]) : style; }
+      const al = align === 'center' || align === 'right' ? align : 'left';
+      I.op({ k: 'text', x: T.x, y: T.y, text: pyStr(text), c: T.pc, size, family, style, align: al });
+    }, 'текст');
+    def(['clear'], [], 0, 'clear()', () => { I.op({ k: 'clear' }); });
+    def(['reset'], [], 0, 'reset()', () => {
+      I.op({ k: 'clear' });
+      Object.assign(T, { x: 0, y: 0, h: 0, pen: true, pc: 'black', fc: 'black', ps: 1, vis: true, fill: null });
+      I.op({ k: 'jump', x: 0, y: 0, h: 0 });
+      I.look();
+    });
+    def(['pos', 'position'], [], 0, 'pos()', () => Object.assign([Math.round(T.x * 100) / 100, Math.round(T.y * 100) / 100], { tuple: true }));
+    def(['xcor'], [], 0, 'xcor()', () => Math.round(T.x * 1e6) / 1e6);
+    def(['ycor'], [], 0, 'ycor()', () => Math.round(T.y * 1e6) / 1e6);
+    def(['heading'], [], 0, 'heading()', () => Math.round(T.h * 1e6) / 1e6);
+    def(['distance'], ['x', 'y'], 1, 'distance(0, 0)', ([x, y]) => {
+      if (y === undefined && Array.isArray(x)) { y = x[1]; x = x[0]; }
+      return Math.hypot(N(x, 'distance', 'distance(0, 0)') - T.x, N(y, 'distance', 'distance(0, 0)') - T.y);
+    });
+    for (const nm of ['done', 'mainloop', 'exitonclick', 'tracer', 'update', 'Screen', 'title', 'setup', 'colormode', 'delay'])
+      m[nm] = { fn: 'b', name: nm, params: [], min: 0, vararg: true, impl: () => null };
+    return m;
+  }
+  makeRandom() {
+    const I = this, m = {};
+    const def = (name, params, min, ex, impl) => { m[name] = { fn: 'b', name, params, min, ex, impl }; };
+    def('randint', ['a', 'b'], 2, 'randint(1, 6)', ([a, b]) => {
+      a = I.num(a, 'randint', 'randint(1, 6)'); b = I.num(b, 'randint', 'randint(1, 6)');
+      if (a > b) throw I.err('В randint(a, b) первое число должно быть не больше второго', 'Пример: randint(1, 6)');
+      return Math.floor(a + Math.random() * (b - a + 1));
+    });
+    def('random', [], 0, 'random()', () => Math.random());
+    def('uniform', ['a', 'b'], 2, 'uniform(0, 1)', ([a, b]) => I.num(a, 'uniform', 'uniform(0, 1)') + Math.random() * (I.num(b, 'uniform', 'uniform(0, 1)') - a));
+    def('choice', ['items'], 1, 'choice(["red", "blue"])', ([x]) => {
+      const list = [...I.iterOf(x)];
+      if (!list.length) throw I.err('choice() не может выбрать из пустого списка');
+      return list[Math.floor(Math.random() * list.length)];
+    });
+    return m;
+  }
+  makeMath() {
+    const I = this, m = { pi: Math.PI, e: Math.E };
+    const one = (name, f) => { m[name] = { fn: 'b', name, params: ['x'], min: 1, ex: `${name}(2)`, what: 'число', impl: ([x]) => f(I.num(x, name, `${name}(2)`)) }; };
+    one('sqrt', x => { if (x < 0) throw I.err('Нельзя извлечь корень из отрицательного числа'); return Math.sqrt(x); });
+    one('sin', Math.sin); one('cos', Math.cos); one('tan', Math.tan);
+    one('floor', Math.floor); one('ceil', Math.ceil);
+    one('radians', x => x * Math.PI / 180); one('degrees', x => x * 180 / Math.PI);
+    return m;
+  }
+}
+
+/* ---------- turtle shapes (same outlines as Python's turtle, nose pointing up) ---------- */
+const SHAPES = {
+  turtle: [[0,16],[-2,14],[-1,10],[-4,7],[-7,9],[-9,8],[-6,5],[-7,1],[-5,-3],[-8,-6],[-6,-8],[-4,-5],[0,-7],[4,-5],[6,-8],[8,-6],[5,-3],[7,1],[6,5],[9,8],[7,9],[4,7],[1,10],[2,14]],
+  classic: [[0,0],[-5,-9],[0,-7],[5,-9]],
+  arrow: [[-10,0],[10,0],[0,10]],
+  triangle: [[10,-5.77],[0,11.55],[-10,-5.77]],
+  square: [[10,-10],[10,10],[-10,10],[-10,-10]],
+  circle: Array.from({ length: 20 }, (_, i) => [10 * Math.cos(i * Math.PI / 10), 10 * Math.sin(i * Math.PI / 10)])
+};
+
+/* =====================================================================
+   Renderer and animator
+   ===================================================================== */
+const W = 640, H = 480;
+const MOVE = [0, 1.5, 2.5, 4, 5.5, 7, 9, 12, 16, 22, 32];   // world units per frame, by speed 1..10
+const TURN = [0, 3, 4, 6, 8, 10, 13, 17, 22, 30, 45];        // degrees per frame
+const $ = s => document.querySelector(s);
+const stage = $('#stage'), cvBg = $('#cv-bg'), cvDraw = $('#cv-draw'), cvTop = $('#cv-top');
+const gBg = cvBg.getContext('2d'), gDraw = cvDraw.getContext('2d'), gTop = cvTop.getContext('2d');
+let cssW = 0, cssH = 0, scale = 1;
+const sx = x => cssW / 2 + x * scale, sy = y => cssH / 2 - y * scale;
+
+const R = { items: [], marks: [], bg: 'white', t: null };
+function freshTurtle() { return { x: 0, y: 0, h: 0, pc: 'black', fc: 'black', vis: true, shape: 'turtle' }; }
+R.t = freshTurtle();
+
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function sizeCanvases() {
+  cssW = stage.clientWidth; cssH = stage.clientHeight;
+  if (!cssW || !cssH) return;
+  const dpr = window.devicePixelRatio || 1;
+  scale = cssW / W;
+  for (const c of [cvBg, cvDraw, cvTop]) {
+    c.width = Math.round(cssW * dpr); c.height = Math.round(cssH * dpr);
+    c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  drawBg(); redrawItems(); drawTop();
+}
+function drawBg() {
+  const g = gBg;
+  g.clearRect(0, 0, cssW, cssH);
+  g.fillStyle = R.bg; g.fillRect(0, 0, cssW, cssH);
+  if (!$('#grid').checked) return;
+  const gridC = cssVar('--paper-grid'), axisC = cssVar('--paper-axis'), labelC = cssVar('--paper-label');
+  g.lineWidth = 1;
+  for (let v = -350; v <= 350; v += 50) {
+    const axis = v === 0;
+    g.strokeStyle = axis ? axisC : gridC;
+    const X = Math.round(sx(v)) + 0.5, Y = Math.round(sy(v)) + 0.5;
+    g.beginPath(); g.moveTo(X, 0); g.lineTo(X, cssH); g.stroke();
+    g.beginPath(); g.moveTo(0, Y); g.lineTo(cssW, Y); g.stroke();
+  }
+  g.fillStyle = labelC;
+  g.font = `${Math.max(9, 11 * Math.min(1, scale * 1.2))}px ${cssVar('--font-code')}`;
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  for (let v = -300; v <= 300; v += 100) if (v) g.fillText(String(v), sx(v), sy(0) + 4);
+  g.textAlign = 'left'; g.textBaseline = 'middle';
+  for (let v = -200; v <= 200; v += 100) if (v) g.fillText(String(v), sx(0) + 5, sy(v));
+  g.textBaseline = 'top'; g.fillText('0', sx(0) + 5, sy(0) + 4);
+}
+function drawItem(g, it) {
+  switch (it.k) {
+    case 'line':
+      g.strokeStyle = it.c; g.lineWidth = Math.max(it.w * scale, it.w > 0 ? 1 : 0.5);
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(sx(it.x0), sy(it.y0)); g.lineTo(sx(it.x1), sy(it.y1)); g.stroke();
+      break;
+    case 'fill':
+      g.fillStyle = it.c; g.beginPath();
+      it.pts.forEach(([x, y], i) => (i ? g.lineTo(sx(x), sy(y)) : g.moveTo(sx(x), sy(y))));
+      g.closePath(); g.fill('evenodd');
+      break;
+    case 'dot':
+      g.fillStyle = it.c; g.beginPath(); g.arc(sx(it.x), sy(it.y), Math.max(0.5, it.d * scale / 2), 0, Math.PI * 2); g.fill();
+      break;
+    case 'text':
+      g.fillStyle = it.c; g.textAlign = it.align; g.textBaseline = 'alphabetic';
+      g.font = `${/italic/.test(it.style) ? 'italic ' : ''}${/bold/.test(it.style) ? '700 ' : ''}${Math.max(6, it.size * 1.33 * scale)}px "${it.family}", ${cssVar('--font-ui')}`;
+      g.fillText(it.text, sx(it.x), sy(it.y));
+      break;
+  }
+}
+function addItem(it) { R.items.push(it); drawItem(gDraw, it); }
+function redrawItems() { gDraw.clearRect(0, 0, cssW, cssH); for (const it of R.items) drawItem(gDraw, it); }
+function drawTurtle(g, x, y, h) {
+  const t = R.t;
+  const pts = SHAPES[t.shape] || SHAPES.turtle;
+  const a = (h - 90) * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+  const X = sx(x), Y = sy(y), k = 1.15;
+  g.beginPath();
+  pts.forEach(([px, py], i) => {
+    const qx = X + (px * ca - py * sa) * k, qy = Y - (px * sa + py * ca) * k;
+    i ? g.lineTo(qx, qy) : g.moveTo(qx, qy);
+  });
+  g.closePath();
+  g.fillStyle = t.fc; g.fill();
+  g.lineWidth = 1; g.lineJoin = 'round'; g.strokeStyle = t.pc; g.stroke();
+}
+
+/* animation state */
+const A = { ops: [], i: 0, p: 0, raf: 0, running: false, hadError: false, printed: false };
+function opCost(op) {
+  if (op.sp === 0) return 0;
+  if (op.k === 'move') return Math.hypot(op.x1 - op.x0, op.y1 - op.y0) / MOVE[op.sp];
+  if (op.k === 'turn') return op.instant ? 0 : Math.abs(op.h1 - op.h0) / TURN[op.sp];
+  return 0;
+}
+function applyOp(op) {
+  switch (op.k) {
+    case 'move':
+      if (op.pen) addItem({ k: 'line', x0: op.x0, y0: op.y0, x1: op.x1, y1: op.y1, c: op.c, w: op.w });
+      R.t.x = op.x1; R.t.y = op.y1; break;
+    case 'jump': R.t.x = op.x; R.t.y = op.y; R.t.h = op.h; break;
+    case 'turn': R.t.h = op.h1; break;
+    case 'look': Object.assign(R.t, op.s); break;
+    case 'fillstart': R.marks.push(R.items.length); break;
+    case 'fillcancel': R.marks.pop(); break;
+    case 'fill': {
+      const at = R.marks.length ? R.marks.pop() : R.items.length;
+      R.items.splice(at, 0, { k: 'fill', pts: op.pts, c: op.c });
+      redrawItems(); break;
+    }
+    case 'dot': addItem({ k: 'dot', x: op.x, y: op.y, d: op.d, c: op.c }); break;
+    case 'text': addItem({ k: 'text', x: op.x, y: op.y, text: op.text, c: op.c, size: op.size, family: op.family, style: op.style, align: op.align }); break;
+    case 'clear': R.items = []; R.marks = R.marks.map(() => 0); redrawItems(); break;
+    case 'bg': R.bg = op.c; drawBg(); break;
+    case 'print': printOut(op.text); A.printed = true; break;
+    case 'error': A.hadError = true; showError(op.e); break;
+  }
+}
+function drawTop() {
+  gTop.clearRect(0, 0, cssW, cssH);
+  let { x, y, h } = R.t;
+  const op = A.running ? A.ops[A.i] : null;
+  if (op && A.p > 0) {
+    if (op.k === 'move') {
+      x = op.x0 + (op.x1 - op.x0) * A.p; y = op.y0 + (op.y1 - op.y0) * A.p;
+      if (op.pen) drawItem(gTop, { k: 'line', x0: op.x0, y0: op.y0, x1: x, y1: y, c: op.c, w: op.w });
+    } else if (op.k === 'turn') h = op.h0 + (op.h1 - op.h0) * A.p;
+  }
+  if (R.t.vis) drawTurtle(gTop, x, y, h);
+  showTurtleStatus(x, y, h);
+}
+function frame() {
+  let budget = 1, guard = 0;
+  while (A.i < A.ops.length && budget > 0 && guard++ < 30000) {
+    const op = A.ops[A.i], cost = opCost(op);
+    if (cost <= 0) { applyOp(op); A.i++; A.p = 0; continue; }
+    const rem = cost * (1 - A.p);
+    if (rem <= budget) { budget -= rem; applyOp(op); A.i++; A.p = 0; }
+    else { A.p += budget / cost; budget = 0; }
+  }
+  if (A.i < A.ops.length) {
+    setCurLine(A.ops[A.i].line);
+    drawTop();
+    A.raf = requestAnimationFrame(frame);
+  } else finish(false);
+}
+function startAnim(ops) {
+  Object.assign(A, { ops, i: 0, p: 0, running: true, hadError: false, printed: false });
+  setRunning(true);
+  A.raf = requestAnimationFrame(frame);
+}
+function finish(stopped) {
+  cancelAnimationFrame(A.raf);
+  A.running = false; A.p = 0;
+  setRunning(false);
+  setCurLine(null);
+  drawTop();
+  if (stopped) addMsg('stopped', 'Остановлено.');
+  else if (!A.hadError) addMsg('ok', 'Готово! Черепашка закончила рисунок.');
+}
+function skipToEnd() {
+  if (!A.running) return;
+  while (A.i < A.ops.length) applyOp(A.ops[A.i++]);
+  finish(false);
+}
+function resetDrawing() {
+  R.items = []; R.marks = []; R.bg = 'white'; R.t = freshTurtle();
+  drawBg(); redrawItems(); drawTop();
+}
+
+/* =====================================================================
+   UI: editor, console, buttons
+   ===================================================================== */
+const ta = $('#code'), hl = $('#hl'), gut = $('#gutter'), con = $('#console');
+const runBtn = $('#run'), skipBtn = $('#skip'), stopBtn = $('#stop');
+const LINE_H = 24;
+let curLine = null, errLine = null;
+
+const HL_FN = new Set(Object.keys(new Interp().mods.turtle));
+const HL_B = new Set(['print', 'range', 'len', 'abs', 'int', 'float', 'str', 'round', 'min', 'max', 'sum', 'list', 'randint', 'choice', 'random', 'uniform', 'sqrt', 'sin', 'cos', 'tan', 'pi']);
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function hlLine(s) {
+  const re = /#.*$|"(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?|\d+(?:\.\d+)?|[A-Za-z_Ѐ-ӿ][A-Za-z_0-9Ѐ-ӿ]*/g;
+  let out = '', last = 0, m;
+  while ((m = re.exec(s))) {
+    out += esc(s.slice(last, m.index));
+    const t = m[0];
+    let cls = null;
+    if (t[0] === '#') cls = 'c';
+    else if (t[0] === '"' || t[0] === "'") cls = 's';
+    else if (/^\d/.test(t)) cls = 'n';
+    else if (KW.has(t)) cls = 'k';
+    else if (HL_FN.has(t)) cls = 'f';
+    else if (HL_B.has(t)) cls = 'b';
+    out += cls ? `<span class="${cls}">${esc(t)}</span>` : esc(t);
+    last = re.lastIndex;
+  }
+  return out + esc(s.slice(last));
+}
+function renderEditor() {
+  const lines = ta.value.split('\n');
+  let h = '', g = '';
+  lines.forEach((ln, i) => {
+    const n = i + 1;
+    const cls = n === errLine ? 'err' : n === curLine ? 'cur' : '';
+    h += `<div class="l ${cls}">${hlLine(ln) || ' '}</div>`;
+    g += `<div class="${cls}">${n}</div>`;
+  });
+  hl.innerHTML = h; gut.innerHTML = g;
+  syncScroll();
+}
+function syncScroll() {
+  hl.style.transform = `translate(${-ta.scrollLeft}px, ${-ta.scrollTop}px)`;
+  gut.style.transform = `translateY(${-ta.scrollTop}px)`;
+}
+function markLine(n, cls, on) {
+  if (!n) return;
+  const a = hl.children[n - 1], b = gut.children[n - 1];
+  if (a) a.classList.toggle(cls, on);
+  if (b) b.classList.toggle(cls, on);
+}
+function setCurLine(n) {
+  if (n === curLine) return;
+  markLine(curLine, 'cur', false);
+  curLine = n;
+  if (!n) return;
+  if (n !== errLine) markLine(n, 'cur', true);
+  const top = (n - 1) * LINE_H, view = ta.clientHeight - 24;
+  if (top < ta.scrollTop || top + LINE_H > ta.scrollTop + view) { ta.scrollTop = Math.max(0, top - view / 2); syncScroll(); }
+}
+function setErrLine(n) {
+  markLine(errLine, 'err', false);
+  errLine = n;
+  markLine(n, 'err', true);
+}
+function setRunning(on) {
+  skipBtn.disabled = !on; stopBtn.disabled = !on;
+}
+
+let saveTimer = 0;
+function onInput() {
+  if (errLine) errLine = null;
+  renderEditor();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { try { localStorage.setItem('turtle-code', ta.value); } catch (e) { /* storage unavailable */ } }, 400);
+}
+ta.addEventListener('input', onInput);
+ta.addEventListener('scroll', syncScroll);
+
+function insertText(text) {
+  ta.focus();
+  let ok = false;
+  try { ok = document.execCommand('insertText', false, text); } catch (e) { ok = false; }
+  if (!ok) { ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, 'end'); onInput(); }
+}
+function lineBounds(pos) {
+  const v = ta.value;
+  const start = v.lastIndexOf('\n', pos - 1) + 1;
+  const e = v.indexOf('\n', pos);
+  return [start, e === -1 ? v.length : e];
+}
+function insertLine(text) {
+  const [s, e] = lineBounds(ta.selectionStart);
+  const line = ta.value.slice(s, e);
+  const indent = line.match(/^ */)[0] + (/:\s*(#.*)?$/.test(line) ? '    ' : '');
+  ta.focus();
+  if (line.trim() === '') { ta.setSelectionRange(s, e); insertText(indent + text); }
+  else { ta.setSelectionRange(e, e); insertText('\n' + indent + text); }
+}
+function shiftLines(dedent) {
+  const v = ta.value;
+  const [s] = lineBounds(ta.selectionStart);
+  const [, e] = lineBounds(Math.max(ta.selectionStart, ta.selectionEnd - (ta.selectionEnd > ta.selectionStart && v[ta.selectionEnd - 1] === '\n' ? 1 : 0)));
+  const block = v.slice(s, e);
+  const out = block.split('\n').map(l => dedent ? l.replace(/^ {1,4}/, '') : '    ' + l).join('\n');
+  ta.setSelectionRange(s, e);
+  insertText(out);
+  ta.setSelectionRange(s, s + out.length);
+}
+let escPressed = false;
+ta.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); return; }
+  if (e.key === 'Escape') { escPressed = true; return; }
+  if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if (escPressed) { escPressed = false; return; }
+    e.preventDefault();
+    const multi = ta.value.slice(ta.selectionStart, ta.selectionEnd).includes('\n');
+    if (e.shiftKey || multi) shiftLines(e.shiftKey);
+    else insertText('    ');
+    return;
+  }
+  escPressed = false;
+  if (e.key === 'Enter' && !e.shiftKey && !e.altKey && !e.isComposing) {
+    const v = ta.value, p = ta.selectionStart;
+    const line = v.slice(v.lastIndexOf('\n', p - 1) + 1, p);
+    let ind = line.match(/^ */)[0];
+    if (/:\s*(#.*)?$/.test(line)) ind += '    ';
+    e.preventDefault();
+    insertText('\n' + ind);
+  }
+});
+
+/* console */
+function clearConsole() { con.innerHTML = ''; }
+function printOut(text) {
+  let pre = con.querySelector('pre');
+  if (!pre) { pre = document.createElement('pre'); con.prepend(pre); }
+  pre.textContent += text;
+}
+function addMsg(cls, text) {
+  const d = document.createElement('div');
+  d.className = cls; d.textContent = text;
+  con.appendChild(d);
+}
+function showError(e) {
+  const d = document.createElement('div');
+  d.className = 'error';
+  d.title = 'Нажмите, чтобы перейти к этой строке';
+  const b = document.createElement('b'); b.textContent = `Ошибка в строке ${e.line}`;
+  const p = document.createElement('p'); p.textContent = e.message;
+  d.append(b, p);
+  if (e.hint) { const h = document.createElement('p'); h.className = 'hint'; h.textContent = e.hint; d.append(h); }
+  d.addEventListener('click', () => goToLine(e.line));
+  con.appendChild(d);
+  setErrLine(e.line);
+}
+function goToLine(n) {
+  const lines = ta.value.split('\n');
+  let pos = 0;
+  for (let i = 0; i < n - 1 && i < lines.length; i++) pos += lines[i].length + 1;
+  ta.focus();
+  ta.setSelectionRange(pos, pos + (lines[n - 1] || '').length);
+  ta.scrollTop = Math.max(0, (n - 4) * LINE_H);
+  syncScroll();
+}
+
+/* run */
+function run() {
+  if (A.running) { cancelAnimationFrame(A.raf); A.running = false; }
+  clearConsole();
+  setErrLine(null);
+  setCurLine(null);
+  resetDrawing();
+  let prog;
+  try { prog = parseProgram(ta.value); }
+  catch (e) {
+    if (!(e instanceof PyError)) throw e;
+    showError(e); setRunning(false); return;
+  }
+  const I = new Interp();
+  try { I.run(prog); }
+  catch (e) {
+    let pe = e;
+    if (e instanceof RangeError) pe = new PyError(I.curLine, 'Слишком много вложенных вызовов функций', 'Похоже, функция вызывает сама себя без остановки.');
+    else if (!(e instanceof PyError)) { console.error(e); pe = new PyError(I.curLine, 'Что-то пошло не так при выполнении этой строки', String(e && e.message || e)); }
+    I.ops.push({ k: 'error', e: pe, line: pe.line, sp: 0 });
+  }
+  startAnim(I.ops);
+}
+runBtn.addEventListener('click', run);
+skipBtn.addEventListener('click', skipToEnd);
+stopBtn.addEventListener('click', () => { if (A.running) finish(true); });
+
+/* status line and mouse coordinates */
+const fmt = v => { const r = Math.round(v * 10) / 10; return (Object.is(r, -0) ? 0 : r).toString().replace('-', '−'); };
+let lastStatus = '';
+function showTurtleStatus(x, y, h) {
+  const hh = ((h % 360) + 360) % 360;
+  const s = `Черепашка: x = ${fmt(x)}, y = ${fmt(y)}, смотрит на ${fmt(hh >= 359.95 ? 0 : hh)}°`;
+  if (s !== lastStatus) { $('#tstat').textContent = s; lastStatus = s; }
+}
+function worldFromEvent(e) {
+  const r = stage.getBoundingClientRect();
+  const x = (e.clientX - r.left - stage.clientLeft - cssW / 2) / scale;
+  const y = (cssH / 2 - (e.clientY - r.top - stage.clientTop)) / scale;
+  return [Math.round(x), Math.round(y)];
+}
+stage.addEventListener('mousemove', e => {
+  const [x, y] = worldFromEvent(e);
+  $('#mstat').textContent = `Курсор: x = ${fmt(x)}, y = ${fmt(y)}`;
+});
+stage.addEventListener('mouseleave', () => { $('#mstat').textContent = 'Наведите на поле, чтобы узнать координаты'; });
+stage.addEventListener('click', e => {
+  const [x, y] = worldFromEvent(e);
+  insertLine(`goto(${x}, ${y})`);
+});
+$('#grid').addEventListener('change', drawBg);
+new ResizeObserver(() => sizeCanvases()).observe(stage);
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', drawBg);
+
+/* =====================================================================
+   Cheat sheet and examples
+   ===================================================================== */
+const MAIN_CMDS = [
+  ['forward(100)', 'вперёд', 'Черепашка проходит 100 шагов вперёд — туда, куда смотрит её нос.'],
+  ['backward(100)', 'назад', 'Черепашка пятится на 100 шагов назад и при этом не поворачивается.'],
+  ['left(90)', 'налево', 'Поворот налево, против часовой стрелки, на 90 градусов. Черепашка остаётся на месте.'],
+  ['right(90)', 'направо', 'Поворот направо, по часовой стрелке, на 90 градусов.'],
+  ['penup()', 'поднять перо', 'Дальше черепашка ходит, не оставляя следа.'],
+  ['pendown()', 'опустить перо', 'Черепашка снова рисует линию, когда двигается.'],
+  ['color("red")', 'цвет', 'Следующие линии будут красными. Цвет пишут по-английски, в кавычках.'],
+  ['goto(100, 50)', 'перейти в точку', 'Черепашка идёт в точку x = 100, y = 50. Если перо опущено, остаётся линия.']
+];
+const EXTRA_CMDS = [
+  ['for i in range(4):', 'повторить', 'Повторить 4 раза команды, которые стоят ниже со сдвигом вправо на 4 пробела.'],
+  ['circle(50)', 'круг', 'Нарисовать круг радиусом 50. С минусом, circle(-50), круг пойдёт в другую сторону.'],
+  ['pensize(5)', 'толщина', 'Линии станут толщиной 5.'],
+  ['speed(10)', 'скорость', 'От 1 — медленно до 10 — быстро. speed(0) рисует мгновенно.'],
+  ['begin_fill()', 'начать заливку', 'Запомнить начало фигуры, которую потом надо закрасить.'],
+  ['end_fill()', 'закрасить', 'Закрасить фигуру, нарисованную после begin_fill().'],
+  ['dot(20)', 'точка', 'Поставить круглую точку диаметром 20.'],
+  ['setheading(90)', 'направление', 'Повернуть нос: 0 — вправо, 90 — вверх, 180 — влево, 270 — вниз.'],
+  ['hideturtle()', 'спрятать', 'Спрятать черепашку, чтобы был виден только рисунок.'],
+  ['write("Привет")', 'написать', 'Написать текст там, где стоит черепашка.']
+];
+function cmdButton([code, ru, d]) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'cmd';
+  b.innerHTML = `<span class="code">${esc(code)}</span><span class="ru">${esc(ru)}</span><span class="d">${esc(d)}</span>`;
+  b.addEventListener('click', () => insertLine(code));
+  return b;
+}
+MAIN_CMDS.forEach(c => $('#cmds-main').appendChild(cmdButton(c)));
+EXTRA_CMDS.forEach(c => $('#cmds-extra').appendChild(cmdButton(c)));
+COLORS.forEach(([en, ru]) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'swatch';
+  b.innerHTML = `<i style="background:${en}"></i><code>"${en}"</code><span>${ru}</span>`;
+  b.addEventListener('click', () => insertLine(`color("${en}")`));
+  $('#swatches').appendChild(b);
+});
+
+const EXAMPLES = {
+  'Домик': `from turtle import *    # подключаем черепашку
+
+# --- Стены ---
+penup()                 # поднять перо (не рисовать)
+goto(-60, -80)          # перейти в точку (-60, -80)
+pendown()               # опустить перо (рисовать)
+color("blue")           # цвет линии — синий
+
+forward(120)            # вперёд на 120 шагов
+left(90)                # повернуть налево на 90°
+forward(120)
+left(90)
+forward(120)
+left(90)
+forward(120)
+left(90)                # снова смотрим вправо
+
+# --- Крыша ---
+color("red")            # цвет линии — красный
+penup()
+goto(-60, 40)
+pendown()
+goto(0, 100)            # перо опущено: будет линия
+goto(60, 40)
+
+# --- Дверь ---
+color("brown")          # коричневый цвет
+penup()
+goto(-15, -80)
+pendown()
+left(90)                # теперь смотрим вверх
+forward(60)
+right(90)               # повернуть направо на 90°
+forward(30)
+right(90)
+forward(60)
+
+# --- Земля ---
+color("green")
+left(90)                # снова смотрим вправо
+forward(150)            # вперёд на 150 шагов
+backward(300)           # назад на 300 (пятимся)
+`,
+  'Квадрат циклом': `from turtle import *
+
+# for повторяет команды со сдвигом вправо
+color("purple")         # цвет линии — фиолетовый
+pensize(3)              # толщина линии — 3
+for i in range(4):      # повторить 4 раза:
+    forward(150)        #   вперёд на 150 шагов
+    left(90)            #   налево на 90°
+`,
+  'Звезда': `from turtle import *
+
+color("gold")           # золотые линия и заливка
+penup()
+goto(-100, 30)
+pendown()
+begin_fill()            # начать закрашивать
+for i in range(5):      # у звезды 5 лучей
+    forward(200)
+    right(144)          # 144° — угол для звезды
+end_fill()              # закрасить фигуру
+`,
+  'Лесенка': `from turtle import *
+
+penup()
+goto(-150, -100)        # начинаем внизу слева
+pendown()
+color("green")
+for i in range(6):      # 6 ступенек
+    left(90)
+    forward(40)         # шаг вверх
+    right(90)
+    forward(40)         # шаг вправо
+`,
+  'Цветок из кругов': `from turtle import *
+
+speed(8)                # рисуем побыстрее
+pensize(2)
+for c in ["red", "orange", "gold", "green", "blue", "purple"]:
+    color(c)            # следующий цвет из списка
+    circle(70)          # круг радиусом 70
+    left(60)            # поворот на 60°
+hideturtle()            # прячем черепашку
+`,
+  'Чистый лист': `from turtle import *
+
+`
+};
+const sel = $('#examples');
+Object.keys(EXAMPLES).forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = k; sel.appendChild(o); });
+sel.addEventListener('change', () => {
+  const code = EXAMPLES[sel.value];
+  sel.value = '';
+  if (code === undefined) return;
+  ta.focus();
+  ta.setSelectionRange(0, ta.value.length);
+  insertText(code);
+  ta.setSelectionRange(code.length, code.length);
+  ta.scrollTop = 0; syncScroll();
+  run();
+});
+
+/* start */
+let saved = null;
+try { saved = localStorage.getItem('turtle-code'); } catch (e) { saved = null; }
+ta.value = saved && saved.trim() ? saved : EXAMPLES['Домик'];
+renderEditor();
+sizeCanvases();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { drawBg(); renderEditor(); });
+run();
+</script>
+</body>
+</html>
