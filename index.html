@@ -6,55 +6,78 @@
 <title>Черепашка Python</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Unbounded:wght@600;700&display=swap">
 <style>
-/* Layout: a workbench — code on the left, a sheet of graph paper on the right, the cheat sheet underneath */
+/* Layout: an ITMO-blue banner, then the workbench (code left, graph paper right), then a colour-coded cheat sheet */
 :root {
-  --bg: #eef1f6;
+  /* ITMO brand palette */
+  --itmo-blue: #1946ba;
+  --itmo-red: #ec0b43;
+  --itmo-sky: #3db5e6;
+  --itmo-mint: #00ae9d;
+  --itmo-peach: #ff8400;
+  --itmo-mango: #ffe60d;
+  --itmo-violet: #830aed;
+
+  --bg: #f1f4fb;
   --surface: #ffffff;
-  --gutter: #f6f8fb;
-  --ink: #1a2030;
-  --muted: #5a6377;
-  --line: #d6dce7;
-  --accent: #2d5bd0;
-  --go: #17845a;
-  --go-hover: #126d4a;
+  --gutter: #f5f7fd;
+  --ink: #141c38;
+  --muted: #56607d;
+  --line: #d7ddee;
+  --accent: #1946ba;
+  --go: #ec0b43;
+  --go-hover: #c9073a;
   --go-ink: #ffffff;
-  --err: #b93b26;
-  --err-bg: #fbeae6;
-  --ok: #17845a;
-  --cur-bg: rgba(45, 91, 208, 0.12);
-  --err-line-bg: rgba(185, 59, 38, 0.14);
-  --sel: rgba(45, 91, 208, 0.25);
-  --syn-kw: #8a3fc2;
-  --syn-str: #1d7d4a;
-  --syn-num: #b55a00;
-  --syn-com: #7b8396;
-  --syn-fn: #2d5bd0;
-  --syn-b: #9a3f6c;
+  --banner: #1946ba;
+  --banner-ink: #ffffff;
+  --err: #c4082f;
+  --err-bg: #fde8ed;
+  --ok: #00875a;
+  --cur-bg: rgba(25, 70, 186, 0.11);
+  --err-line-bg: rgba(236, 11, 67, 0.13);
+  --sel: rgba(25, 70, 186, 0.24);
+  --syn-kw: #d6083d;
+  --syn-str: #00874b;
+  --syn-num: #c25e00;
+  --syn-com: #7a83a0;
+  --syn-fn: #1946ba;
+  --syn-b: #7a0ad8;
+  /* category colours for the cheat sheet */
+  --c-move: #1946ba;
+  --c-turn: #0f8fc4;
+  --c-pen: #00877a;
+  --c-color: #d6083d;
+  --c-goto: #c25e00;
+  --c-more: #7a0ad8;
   /* the drawing sheet stays paper-white in both themes so "black" ink is always visible */
   --paper: #ffffff;
-  --paper-grid: #e9edf4;
-  --paper-axis: #c5cddb;
-  --paper-label: #9aa3b4;
+  --paper-grid: #e8edf8;
+  --paper-axis: #bfc9e3;
+  --paper-label: #94a0be;
   --font-ui: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
   --font-code: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --radius: 10px;
+  --radius: 16px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #121620; --surface: #1a1f2b; --gutter: #161b26; --ink: #e6e9f0; --muted: #9aa3b5; --line: #2c3343;
-    --accent: #85a6ff; --go: #2fa874; --go-hover: #39bd84; --go-ink: #07160f; --err: #ff8a73; --err-bg: #3a1f1a; --ok: #4cc78f;
-    --cur-bg: rgba(133, 166, 255, 0.16); --err-line-bg: rgba(255, 138, 115, 0.18); --sel: rgba(133, 166, 255, 0.32);
-    --syn-kw: #c79bff; --syn-str: #7fd3a0; --syn-num: #ffb46b; --syn-com: #7d879b; --syn-fn: #85a6ff; --syn-b: #f09ac4;
+    --bg: #0c1330; --surface: #131c40; --gutter: #101839; --ink: #e8ecfa; --muted: #9ea8c8; --line: #27325c;
+    --accent: #7d9cff; --go: #ff2e63; --go-hover: #ff5580; --go-ink: #ffffff; --banner: #1946ba; --banner-ink: #ffffff;
+    --err: #ff7d9a; --err-bg: #3b1426; --ok: #3fd6a0;
+    --cur-bg: rgba(125, 156, 255, 0.16); --err-line-bg: rgba(255, 46, 99, 0.2); --sel: rgba(125, 156, 255, 0.32);
+    --syn-kw: #ff6d92; --syn-str: #5fe0a6; --syn-num: #ffb35c; --syn-com: #7f8aad; --syn-fn: #8fadff; --syn-b: #c08cff;
+    --c-move: #8fadff; --c-turn: #5fcbf2; --c-pen: #3fd6c4; --c-color: #ff6d92; --c-goto: #ffb35c; --c-more: #c08cff;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #121620; --surface: #1a1f2b; --gutter: #161b26; --ink: #e6e9f0; --muted: #9aa3b5; --line: #2c3343;
-  --accent: #85a6ff; --go: #2fa874; --go-hover: #39bd84; --go-ink: #07160f; --err: #ff8a73; --err-bg: #3a1f1a; --ok: #4cc78f;
-  --cur-bg: rgba(133, 166, 255, 0.16); --err-line-bg: rgba(255, 138, 115, 0.18); --sel: rgba(133, 166, 255, 0.32);
-  --syn-kw: #c79bff; --syn-str: #7fd3a0; --syn-num: #ffb46b; --syn-com: #7d879b; --syn-fn: #85a6ff; --syn-b: #f09ac4;
+  --bg: #0c1330; --surface: #131c40; --gutter: #101839; --ink: #e8ecfa; --muted: #9ea8c8; --line: #27325c;
+  --accent: #7d9cff; --go: #ff2e63; --go-hover: #ff5580; --go-ink: #ffffff; --banner: #1946ba; --banner-ink: #ffffff;
+  --err: #ff7d9a; --err-bg: #3b1426; --ok: #3fd6a0;
+  --cur-bg: rgba(125, 156, 255, 0.16); --err-line-bg: rgba(255, 46, 99, 0.2); --sel: rgba(125, 156, 255, 0.32);
+  --syn-kw: #ff6d92; --syn-str: #5fe0a6; --syn-num: #ffb35c; --syn-com: #7f8aad; --syn-fn: #8fadff; --syn-b: #c08cff;
+  --c-move: #8fadff; --c-turn: #5fcbf2; --c-pen: #3fd6c4; --c-color: #ff6d92; --c-goto: #ffb35c; --c-more: #c08cff;
   color-scheme: dark;
 }
 
@@ -63,12 +86,25 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(-
 .wrap { max-width: 1320px; margin: 0 auto; padding-inline: 24px; padding-block: 20px 56px; display: grid; gap: 22px; }
 @media (max-width: 560px) { .wrap { padding-inline: 16px; padding-block: 14px 40px; gap: 16px; } }
 
-/* header */
-.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 28px; }
-.importline { margin: 0; font: 700 clamp(24px, 4.2vw, 38px)/1.1 var(--font-code); letter-spacing: -0.01em; white-space: nowrap; }
-.importline .k { color: var(--syn-kw); }
-.importline .star { color: var(--go); }
-.sub { margin: 0; color: var(--muted); max-width: 52ch; }
+/* banner */
+.hero {
+  position: relative; overflow: hidden; border-radius: 22px;
+  background: var(--banner); color: var(--banner-ink);
+  padding: 26px 30px 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+.hero::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px;
+  background: linear-gradient(90deg,
+    var(--itmo-red) 0 16.6%, var(--itmo-peach) 0 33.3%, var(--itmo-mango) 0 50%,
+    var(--itmo-mint) 0 66.6%, var(--itmo-sky) 0 83.3%, var(--itmo-violet) 0 100%);
+}
+.hero-text { display: grid; gap: 8px; min-width: 0; }
+.importline { margin: 0; font: 700 clamp(26px, 4.6vw, 44px)/1.1 var(--font-code); letter-spacing: -0.01em; white-space: nowrap; }
+.importline .k { color: var(--itmo-mango); }
+.importline .star { color: #ff5c86; }
+.sub { margin: 0; max-width: 54ch; font-size: 16px; opacity: 0.92; }
+.hero svg { flex: none; width: 210px; height: auto; }
+@media (max-width: 720px) { .hero svg { display: none; } .hero { padding: 20px 20px 26px; } }
 
 /* workbench */
 .bench { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 22px; align-items: start; }
@@ -77,22 +113,28 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(-
 
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .btn {
-  font: 600 14px/1 var(--font-ui); padding: 10px 14px; border-radius: 8px; cursor: pointer;
-  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  font: 600 14px/1 var(--font-ui); padding: 11px 16px; border-radius: 999px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
 }
 .btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
 .btn:disabled { opacity: 0.45; cursor: default; }
-.btn.go { background: var(--go); border-color: var(--go); color: var(--go-ink); padding-inline: 18px; }
+.btn.go {
+  background: var(--go); border-color: var(--go); color: var(--go-ink); padding-inline: 22px; font-size: 15px;
+  box-shadow: 0 4px 0 rgba(140, 4, 38, 0.35);
+}
 .btn.go:hover { background: var(--go-hover); border-color: var(--go-hover); }
-.btn:focus-visible, select:focus-visible, .cmd:focus-visible, .swatch:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.go:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(140, 4, 38, 0.35); }
+.btn:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--itmo-sky); outline-offset: 2px; }
 .examples { margin-left: auto; display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; }
-.examples select { font: 500 14px var(--font-ui); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
+.examples select { font: 500 14px var(--font-ui); padding: 9px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); max-width: 100%; }
 @media (max-width: 560px) { .examples { margin-left: 0; } }
 
 /* code editor: a transparent textarea over a highlighted copy */
 .editor {
   display: grid; grid-template-columns: auto minmax(0, 1fr); height: 440px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden;
 }
 .editor:focus-within { border-color: var(--accent); }
 @media (max-width: 560px) { .editor { height: 340px; } }
@@ -123,19 +165,19 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(-
 .hl .f { color: var(--syn-fn); }
 .hl .b { color: var(--syn-b); }
 .keys { margin: 0; font-size: 13px; color: var(--muted); }
-.keys kbd { font: 12px var(--font-code); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--surface); }
+.keys kbd { font: 12px var(--font-code); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; background: var(--surface); }
 
 /* output */
 .console {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius);
   padding: 12px 14px; min-height: 64px; display: grid; gap: 8px; align-content: start;
 }
 .console .placeholder { color: var(--muted); font-size: 14px; }
 .console pre { margin: 0; font: 14px/1.5 var(--font-code); white-space: pre-wrap; word-break: break-word; }
-.console .ok { color: var(--ok); font-weight: 600; font-size: 14px; }
+.console .ok { color: var(--ok); font-weight: 700; font-size: 14.5px; }
 .console .stopped { color: var(--muted); font-weight: 600; font-size: 14px; }
 .console .error {
-  background: var(--err-bg); border-radius: 8px; padding: 10px 12px; cursor: pointer;
+  background: var(--err-bg); border-radius: 12px; padding: 10px 12px; cursor: pointer;
   display: grid; gap: 4px; font-size: 14.5px;
 }
 .console .error b { color: var(--err); }
@@ -146,51 +188,69 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(-
 /* drawing sheet */
 .stage {
   position: relative; width: 100%; max-width: 100%; aspect-ratio: 4 / 3;
-  background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; cursor: crosshair;
+  background: var(--paper); border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; cursor: crosshair;
 }
 .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .stagebar { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center; font-size: 13.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .stagebar .grow { flex: 1 1 auto; }
 .stagebar label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; color: var(--ink); }
+.stagebar input { accent-color: var(--itmo-blue); }
 
 /* cheat sheet */
 .cheat { display: grid; gap: 14px; padding-top: 6px; }
-.cheat h2 { margin: 0; font: 700 22px/1.2 var(--font-ui); text-wrap: balance; }
-.cheat h3 { margin: 0; font: 600 13px/1.2 var(--font-ui); text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.cheat h2 { margin: 0; font: 700 26px/1.2 var(--font-display); text-wrap: balance; }
+.cheat h3 { margin: 0; font: 600 12.5px/1.2 var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 .cheat .lead { margin: 0; color: var(--muted); max-width: 70ch; }
 .group { display: grid; gap: 10px; }
-.cmds { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; }
+.cmds { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 10px; }
 .cmd {
-  text-align: left; font: inherit; color: inherit; cursor: pointer; display: grid; gap: 3px; align-content: start;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0;
+  --cat: var(--c-more);
+  display: grid; gap: 4px; align-content: start; min-width: 0;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px;
 }
-.cmd:hover { border-color: var(--accent); }
-.cmd .code { font: 700 14.5px/1.4 var(--font-code); color: var(--syn-fn); overflow-wrap: anywhere; }
-.cmd .ru { font-weight: 600; }
+.cmd .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cmd .code { font: 700 15px/1.4 var(--font-code); color: var(--cat); overflow-wrap: anywhere; user-select: text; }
+.cmd .tag {
+  font: 600 11px/1 var(--font-ui); text-transform: uppercase; letter-spacing: 0.06em; color: var(--cat);
+  background: color-mix(in srgb, var(--cat) 13%, transparent); padding: 5px 8px; border-radius: 999px; white-space: nowrap;
+}
+.cmd .ru { font-weight: 700; font-size: 15.5px; }
 .cmd .d { color: var(--muted); font-size: 14px; line-height: 1.45; }
+.cmd[data-cat="move"] { --cat: var(--c-move); }
+.cmd[data-cat="turn"] { --cat: var(--c-turn); }
+.cmd[data-cat="pen"] { --cat: var(--c-pen); }
+.cmd[data-cat="color"] { --cat: var(--c-color); }
+.cmd[data-cat="goto"] { --cat: var(--c-goto); }
 .cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 22px; align-items: start; }
 @media (max-width: 920px) { .cols { grid-template-columns: minmax(0, 1fr); } }
 .swatches { display: flex; flex-wrap: wrap; gap: 6px; }
 .swatch {
-  display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font: 14px var(--font-ui); color: var(--ink);
-  background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px 5px 6px;
+  display: inline-flex; align-items: center; gap: 8px; font: 14px var(--font-ui); color: var(--ink);
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 999px; padding: 5px 12px 5px 6px;
 }
-.swatch:hover { border-color: var(--accent); }
-.swatch i { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.18); flex: none; }
+.swatch i { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.18); flex: none; }
 .swatch code { font: 13.5px var(--font-code); }
 .swatch span { color: var(--muted); }
-.field { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 8px; }
+.field { background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 8px; }
 .field p { margin: 0; }
 .field ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
 
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="top">
-    <h1 class="importline"><span class="k">from</span> turtle <span class="k">import</span> <span class="star">*</span></h1>
-    <p class="sub">Черепашка рисует по командам на Python. Напишите программу и нажмите «Запустить».</p>
+  <header class="hero">
+    <div class="hero-text">
+      <h1 class="importline"><span class="k">from</span> turtle <span class="k">import</span> <span class="star">*</span></h1>
+      <p class="sub">Черепашка рисует по командам на Python. Напишите программу и нажмите «Запустить».</p>
+    </div>
+    <svg viewBox="0 0 210 120" aria-hidden="true">
+      <polyline points="14,104 14,64 74,64 74,24 134,24 134,84 184,84" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 10"/>
+      <g transform="translate(190 84) rotate(90) scale(1.6)">
+        <polygon points="0,16 -2,14 -1,10 -4,7 -7,9 -9,8 -6,5 -7,1 -5,-3 -8,-6 -6,-8 -4,-5 0,-7 4,-5 6,-8 8,-6 5,-3 7,1 6,5 9,8 7,9 4,7 1,10 2,14" fill="#ffe60d" stroke="#ffffff" stroke-width="0.8" stroke-linejoin="round"/>
+      </g>
+    </svg>
   </header>
 
   <main class="bench">
@@ -219,7 +279,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(-
     </section>
 
     <section class="panel" aria-label="Поле для рисования">
-      <div class="stage" id="stage" title="Нажмите, чтобы добавить в программу goto() с координатами этой точки">
+      <div class="stage" id="stage">
         <canvas id="cv-bg"></canvas>
         <canvas id="cv-draw"></canvas>
         <canvas id="cv-top"></canvas>
@@ -234,7 +294,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(-
 
   <section class="cheat" aria-labelledby="cheat-title">
     <h2 id="cheat-title">Шпаргалка</h2>
-    <p class="lead">Нажмите на команду, и она появится в программе на новой строке под курсором.</p>
+    <p class="lead">Набирайте команды сами — так они быстрее запомнятся. Каждая команда пишется с новой строки, а после имени всегда стоят скобки.</p>
     <div class="group">
       <h3>Главные команды</h3>
       <div class="cmds" id="cmds-main"></div>
@@ -255,7 +315,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(-
             <li>0° — вправо, 90° — вверх</li>
             <li>180° — влево, 270° — вниз</li>
           </ul>
-          <p>Нажмите на поле, и в программу добавится <code>goto(x, y)</code> с координатами этой точки.</p>
+          <p>Наведите мышку на поле: под ним появятся координаты этой точки.</p>
         </div>
       </div>
     </div>
@@ -713,7 +773,7 @@ function fromRuLayout(s) {
 const RU_WORDS = {
   'вперед': 'forward', 'вперёд': 'forward', 'назад': 'backward', 'налево': 'left', 'влево': 'left',
   'направо': 'right', 'вправо': 'right', 'цвет': 'color', 'круг': 'circle', 'перейти': 'goto',
-  'поднять': 'penup', 'опустить': 'pendown', 'повтори': 'for i in range(…):', 'повторить': 'for i in range(…):'
+  'поднять': 'penup', 'опустить': 'pendown'
 };
 const COLORS = [
   ['red', 'красный'], ['orange', 'оранжевый'], ['yellow', 'жёлтый'], ['green', 'зелёный'],
@@ -1543,14 +1603,6 @@ function lineBounds(pos) {
   const e = v.indexOf('\n', pos);
   return [start, e === -1 ? v.length : e];
 }
-function insertLine(text) {
-  const [s, e] = lineBounds(ta.selectionStart);
-  const line = ta.value.slice(s, e);
-  const indent = line.match(/^ */)[0] + (/:\s*(#.*)?$/.test(line) ? '    ' : '');
-  ta.focus();
-  if (line.trim() === '') { ta.setSelectionRange(s, e); insertText(indent + text); }
-  else { ta.setSelectionRange(e, e); insertText('\n' + indent + text); }
-}
 function shiftLines(dedent) {
   const v = ta.value;
   const [s] = lineBounds(ta.selectionStart);
@@ -1664,10 +1716,6 @@ stage.addEventListener('mousemove', e => {
   $('#mstat').textContent = `Курсор: x = ${fmt(x)}, y = ${fmt(y)}`;
 });
 stage.addEventListener('mouseleave', () => { $('#mstat').textContent = 'Наведите на поле, чтобы узнать координаты'; });
-stage.addEventListener('click', e => {
-  const [x, y] = worldFromEvent(e);
-  insertLine(`goto(${x}, ${y})`);
-});
 $('#grid').addEventListener('change', drawBg);
 new ResizeObserver(() => sizeCanvases()).observe(stage);
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', drawBg);
@@ -1676,42 +1724,38 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', drawBg);
    Cheat sheet and examples
    ===================================================================== */
 const MAIN_CMDS = [
-  ['forward(100)', 'вперёд', 'Черепашка проходит 100 шагов вперёд — туда, куда смотрит её нос.'],
-  ['backward(100)', 'назад', 'Черепашка пятится на 100 шагов назад и при этом не поворачивается.'],
-  ['left(90)', 'налево', 'Поворот налево, против часовой стрелки, на 90 градусов. Черепашка остаётся на месте.'],
-  ['right(90)', 'направо', 'Поворот направо, по часовой стрелке, на 90 градусов.'],
-  ['penup()', 'поднять перо', 'Дальше черепашка ходит, не оставляя следа.'],
-  ['pendown()', 'опустить перо', 'Черепашка снова рисует линию, когда двигается.'],
-  ['color("red")', 'цвет', 'Следующие линии будут красными. Цвет пишут по-английски, в кавычках.'],
-  ['goto(100, 50)', 'перейти в точку', 'Черепашка идёт в точку x = 100, y = 50. Если перо опущено, остаётся линия.']
+  ['move', 'движение', 'forward(100)', 'вперёд', 'Черепашка проходит 100 шагов вперёд — туда, куда смотрит её нос.'],
+  ['move', 'движение', 'backward(100)', 'назад', 'Черепашка пятится на 100 шагов назад и при этом не поворачивается.'],
+  ['turn', 'поворот', 'left(90)', 'налево', 'Поворот налево, против часовой стрелки, на 90 градусов. Черепашка остаётся на месте.'],
+  ['turn', 'поворот', 'right(90)', 'направо', 'Поворот направо, по часовой стрелке, на 90 градусов.'],
+  ['pen', 'перо', 'penup()', 'поднять перо', 'Дальше черепашка ходит, не оставляя следа.'],
+  ['pen', 'перо', 'pendown()', 'опустить перо', 'Черепашка снова рисует линию, когда двигается.'],
+  ['color', 'цвет', 'color("red")', 'цвет', 'Следующие линии будут красными. Цвет пишут по-английски, в кавычках.'],
+  ['goto', 'координаты', 'goto(100, 50)', 'перейти в точку', 'Черепашка идёт в точку x = 100, y = 50. Если перо опущено, остаётся линия.']
 ];
 const EXTRA_CMDS = [
-  ['for i in range(4):', 'повторить', 'Повторить 4 раза команды, которые стоят ниже со сдвигом вправо на 4 пробела.'],
-  ['circle(50)', 'круг', 'Нарисовать круг радиусом 50. С минусом, circle(-50), круг пойдёт в другую сторону.'],
-  ['pensize(5)', 'толщина', 'Линии станут толщиной 5.'],
-  ['speed(10)', 'скорость', 'От 1 — медленно до 10 — быстро. speed(0) рисует мгновенно.'],
-  ['begin_fill()', 'начать заливку', 'Запомнить начало фигуры, которую потом надо закрасить.'],
-  ['end_fill()', 'закрасить', 'Закрасить фигуру, нарисованную после begin_fill().'],
-  ['dot(20)', 'точка', 'Поставить круглую точку диаметром 20.'],
-  ['setheading(90)', 'направление', 'Повернуть нос: 0 — вправо, 90 — вверх, 180 — влево, 270 — вниз.'],
-  ['hideturtle()', 'спрятать', 'Спрятать черепашку, чтобы был виден только рисунок.'],
-  ['write("Привет")', 'написать', 'Написать текст там, где стоит черепашка.']
+  ['move', 'фигура', 'circle(50)', 'круг', 'Нарисовать круг радиусом 50. С минусом, circle(-50), круг пойдёт в другую сторону.'],
+  ['pen', 'перо', 'pensize(5)', 'толщина', 'Линии станут толщиной 5.'],
+  ['color', 'заливка', 'begin_fill()', 'начать заливку', 'Запомнить начало фигуры, которую потом надо закрасить.'],
+  ['color', 'заливка', 'end_fill()', 'закрасить', 'Закрасить фигуру, нарисованную после begin_fill().'],
+  ['color', 'фигура', 'dot(20)', 'точка', 'Поставить круглую точку диаметром 20.'],
+  ['more', 'черепашка', 'speed(10)', 'скорость', 'От 1 — медленно до 10 — быстро. speed(0) рисует мгновенно.'],
+  ['more', 'черепашка', 'hideturtle()', 'спрятать', 'Спрятать черепашку, чтобы был виден только рисунок.'],
+  ['more', 'текст', 'write("Привет")', 'написать', 'Написать текст там, где стоит черепашка.']
 ];
-function cmdButton([code, ru, d]) {
-  const b = document.createElement('button');
-  b.type = 'button'; b.className = 'cmd';
-  b.innerHTML = `<span class="code">${esc(code)}</span><span class="ru">${esc(ru)}</span><span class="d">${esc(d)}</span>`;
-  b.addEventListener('click', () => insertLine(code));
-  return b;
+function cmdCard([cat, tag, code, ru, d]) {
+  const el = document.createElement('div');
+  el.className = 'cmd'; el.dataset.cat = cat;
+  el.innerHTML = `<div class="top"><span class="code">${esc(code)}</span><span class="tag">${esc(tag)}</span></div><span class="ru">${esc(ru)}</span><span class="d">${esc(d)}</span>`;
+  return el;
 }
-MAIN_CMDS.forEach(c => $('#cmds-main').appendChild(cmdButton(c)));
-EXTRA_CMDS.forEach(c => $('#cmds-extra').appendChild(cmdButton(c)));
+MAIN_CMDS.forEach(c => $('#cmds-main').appendChild(cmdCard(c)));
+EXTRA_CMDS.forEach(c => $('#cmds-extra').appendChild(cmdCard(c)));
 COLORS.forEach(([en, ru]) => {
-  const b = document.createElement('button');
-  b.type = 'button'; b.className = 'swatch';
-  b.innerHTML = `<i style="background:${en}"></i><code>"${en}"</code><span>${ru}</span>`;
-  b.addEventListener('click', () => insertLine(`color("${en}")`));
-  $('#swatches').appendChild(b);
+  const el = document.createElement('span');
+  el.className = 'swatch';
+  el.innerHTML = `<i style="background:${en}"></i><code>"${en}"</code><span>${ru}</span>`;
+  $('#swatches').appendChild(el);
 });
 
 const EXAMPLES = {
@@ -1758,14 +1802,17 @@ left(90)                # снова смотрим вправо
 forward(150)            # вперёд на 150 шагов
 backward(300)           # назад на 300 (пятимся)
 `,
-  'Квадрат циклом': `from turtle import *
+  'Квадрат': `from turtle import *
 
-# for повторяет команды со сдвигом вправо
-color("purple")         # цвет линии — фиолетовый
+color("purple")         # фиолетовый цвет
 pensize(3)              # толщина линии — 3
-for i in range(4):      # повторить 4 раза:
-    forward(150)        #   вперёд на 150 шагов
-    left(90)            #   налево на 90°
+forward(150)            # вперёд на 150 шагов
+left(90)                # налево на 90°
+forward(150)
+left(90)
+forward(150)
+left(90)
+forward(150)
 `,
   'Звезда': `from turtle import *
 
@@ -1774,31 +1821,58 @@ penup()
 goto(-100, 30)
 pendown()
 begin_fill()            # начать закрашивать
-for i in range(5):      # у звезды 5 лучей
-    forward(200)
-    right(144)          # 144° — угол для звезды
+forward(200)            # первый луч
+right(144)              # 144° — угол для звезды
+forward(200)
+right(144)
+forward(200)
+right(144)
+forward(200)
+right(144)
+forward(200)
 end_fill()              # закрасить фигуру
 `,
   'Лесенка': `from turtle import *
 
 penup()
-goto(-150, -100)        # начинаем внизу слева
+goto(-120, -90)         # начинаем внизу слева
 pendown()
 color("green")
-for i in range(6):      # 6 ступенек
-    left(90)
-    forward(40)         # шаг вверх
-    right(90)
-    forward(40)         # шаг вправо
+left(90)                # смотрим вверх
+forward(50)             # ступенька 1: вверх
+right(90)               # смотрим вправо
+forward(50)             #              вправо
+left(90)
+forward(50)             # ступенька 2
+right(90)
+forward(50)
+left(90)
+forward(50)             # ступенька 3
+right(90)
+forward(50)
 `,
-  'Цветок из кругов': `from turtle import *
+  'Снеговик': `from turtle import *
 
-speed(8)                # рисуем побыстрее
-pensize(2)
-for c in ["red", "orange", "gold", "green", "blue", "purple"]:
-    color(c)            # следующий цвет из списка
-    circle(70)          # круг радиусом 70
-    left(60)            # поворот на 60°
+pensize(3)
+color("skyblue")
+penup()
+goto(0, -160)           # низ большого кома
+pendown()
+circle(60)              # большой ком, радиус 60
+penup()
+goto(0, -40)
+pendown()
+circle(45)              # средний ком
+penup()
+goto(0, 50)
+pendown()
+circle(30)              # голова
+
+color("orange")
+penup()
+goto(0, 85)
+pendown()
+dot(10)                 # нос-морковка
 hideturtle()            # прячем черепашку
 `,
   'Чистый лист': `from turtle import *
